@@ -1,16 +1,16 @@
 {
   "shell": {
     "shiftBadge": "Shift A (07:00 - 15:00)",
-    "deskLabel": "Darajat Desk #01",
-    "footerTitle": "Green Hero Darajat Admin System • Operational Back-Office",
-    "footerNote": "Authorized staff access only. Green Hero Darajat operational workspace."
+    "deskLabel": "Demo Desk #01",
+    "footerTitle": "Setara Stay Demo Admin System • Operational Back-Office",
+    "footerNote": "Authorized staff access only. Setara Stay Demo operational workspace."
   },
   "card": {
-    "brandEyebrow": "GREEN HERO DARAJAT",
+    "brandEyebrow": "SETARA STAY DEMO",
     "title": "Welcome back",
     "description": "Sign in to manage reservations, rooms, payments, and hotel operations.",
     "serverStatus": "PMS Server Online",
-    "version": "v3.4.12-darajat"
+    "version": "v3.4.12-demo"
   },
   "form": {
     "usernameLabel": "Username / Staff ID",

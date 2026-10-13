@@ -97,9 +97,13 @@ button {
   border-radius: 8px;
   background: var(--primary);
 }
-.brand-mark img {
+.brand-mark span {
   display: block;
-  object-fit: contain;
+  color: white;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.08em;
+  line-height: 1;
 }
 .brand-eyebrow {
   margin: 16px 0 4px;
@@ -340,9 +344,8 @@ button {
   flex: none;
   padding: 7px;
 }
-.sidebar-brand .brand-mark img {
-  width: 25px;
-  height: 25px;
+.sidebar-brand .brand-mark span {
+  font-size: 13px;
 }
 .sidebar-brand__text {
   min-width: 0;

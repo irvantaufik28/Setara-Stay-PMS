@@ -685,7 +685,7 @@
     "sendReminder": "Send a payment reminder via WhatsApp to {phone}.",
     "sendWhatsapp": "Send WhatsApp Invoice Link",
     "whatsappUnavailable": "WhatsApp number is unavailable.",
-    "whatsappMessage": "Hello {guest}, a payment reminder for reservation {bookingId} at Green Hero Darajat. Remaining balance: {balance}.",
+    "whatsappMessage": "Hello {guest}, a payment reminder for reservation {bookingId} at Setara Stay Demo. Remaining balance: {balance}.",
     "modal": {
       "recordPaymentTitle": "Record Payment",
       "cancelReservationTitle": "Cancel Reservation",

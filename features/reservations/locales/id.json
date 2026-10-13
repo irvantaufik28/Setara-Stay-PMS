@@ -685,7 +685,7 @@
     "sendReminder": "Kirim pengingat pembayaran via WhatsApp ke {phone}.",
     "sendWhatsapp": "Kirim Link Invoice WhatsApp",
     "whatsappUnavailable": "Nomor WhatsApp tidak tersedia.",
-    "whatsappMessage": "Halo {guest}, pengingat pembayaran reservasi {bookingId} di Green Hero Darajat. Sisa tagihan: {balance}.",
+    "whatsappMessage": "Halo {guest}, pengingat pembayaran reservasi {bookingId} di Setara Stay Demo. Sisa tagihan: {balance}.",
     "modal": {
       "recordPaymentTitle": "Catat Pembayaran",
       "cancelReservationTitle": "Batalkan Reservasi",

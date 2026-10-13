@@ -5,10 +5,10 @@
     "changePasswordContext": "Ubah Kata Sandi"
   },
   "profile": {
-    "description": "Informasi akun pemilik Green Hero Darajat.",
+    "description": "Informasi akun pemilik Setara Stay Hotel Demo.",
     "photo": {
       "alt": "Foto profil Owner",
-      "ownerRole": "Owner · Green Hero Darajat",
+      "ownerRole": "Owner · Setara Stay Hotel Demo",
       "upload": "Unggah Foto",
       "remove": "Hapus",
       "hint": "JPG, PNG, atau WebP · maks. 2 MB.",
@@ -33,7 +33,7 @@
       "email": "Email",
       "phone": "Telepon",
       "property": "Properti",
-      "propertyValue": "Green Hero Darajat",
+      "propertyValue": "Setara Stay Hotel Demo",
       "location": "Lokasi",
       "locationValue": "Darajat Pass, Garut, Jawa Barat"
     },

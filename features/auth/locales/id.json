@@ -1,16 +1,16 @@
 {
   "shell": {
     "shiftBadge": "Shift A (07:00 - 15:00)",
-    "deskLabel": "Meja Darajat #01",
-    "footerTitle": "Sistem Admin Green Hero Darajat • Back-Office Operasional",
-    "footerNote": "Akses hanya untuk staf berwenang. Ruang kerja operasional Green Hero Darajat."
+    "deskLabel": "Meja Demo #01",
+    "footerTitle": "Sistem Admin Setara Stay Demo • Back-Office Operasional",
+    "footerNote": "Akses hanya untuk staf berwenang. Ruang kerja operasional Setara Stay Demo."
   },
   "card": {
-    "brandEyebrow": "GREEN HERO DARAJAT",
+    "brandEyebrow": "SETARA STAY DEMO",
     "title": "Selamat datang kembali",
     "description": "Masuk untuk mengelola reservasi, kamar, pembayaran, dan operasional hotel.",
     "serverStatus": "Server PMS Online",
-    "version": "v3.4.12-darajat"
+    "version": "v3.4.12-demo"
   },
   "form": {
     "usernameLabel": "Username / ID Staf",

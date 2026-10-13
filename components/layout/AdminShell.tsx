@@ -130,7 +130,7 @@ export function AdminShell({ title, context, badge, children }: Props) {
       {demoNoticeOpen && (
         <div className="demo-notice-backdrop">
           <section className="demo-notice-modal" role="dialog" aria-modal="true" aria-labelledby="demo-notice-title" aria-describedby="demo-notice-description">
-            <span className="demo-notice-eyebrow">GREEN HERO DARAJAT</span>
+            <span className="demo-notice-eyebrow">SETARA STAY DEMO</span>
             <h2 id="demo-notice-title">Selamat datang di versi demo</h2>
             <p id="demo-notice-description">
               Sistem ini dibuat untuk memperlihatkan alur kerja admin hotel.

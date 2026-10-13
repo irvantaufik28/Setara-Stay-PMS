@@ -5,10 +5,10 @@
     "changePasswordContext": "Change Password"
   },
   "profile": {
-    "description": "Green Hero Darajat owner account information.",
+    "description": "Setara Stay Hotel Demo owner account information.",
     "photo": {
       "alt": "Owner profile photo",
-      "ownerRole": "Owner · Green Hero Darajat",
+      "ownerRole": "Owner · Setara Stay Hotel Demo",
       "upload": "Upload Photo",
       "remove": "Remove",
       "hint": "JPG, PNG, or WebP · max. 2 MB.",
@@ -33,7 +33,7 @@
       "email": "Email",
       "phone": "Phone",
       "property": "Property",
-      "propertyValue": "Green Hero Darajat",
+      "propertyValue": "Setara Stay Hotel Demo",
       "location": "Location",
       "locationValue": "Darajat Pass, Garut, West Java"
     },

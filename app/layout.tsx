@@ -5,8 +5,8 @@ import "./globals.css";
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Green Hero Darajat | Admin",
-  description: "Green Hero Darajat admin system",
+  title: "Setara Stay Demo | Admin",
+  description: "Setara Stay Demo admin system",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

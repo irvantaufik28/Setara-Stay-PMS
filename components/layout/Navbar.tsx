@@ -114,7 +114,7 @@ export function Navbar({
             </span>
             <span className="navbar-profile__text">
               <strong>{user?.name ?? "User"}</strong>
-              <small>{user?.roleName ?? "Green Hero Darajat"}</small>
+              <small>{user?.roleName ?? "Setara Stay Demo"}</small>
             </span>
           </button>
           {menu === "profile" && (

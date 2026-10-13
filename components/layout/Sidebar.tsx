@@ -152,9 +152,7 @@ export function Sidebar({
   const pathname = usePathname();
   const { t } = useTranslations({ en, id });
   const [hovered, setHovered] = useState(false);
-  const [section, setSection] = useState<"hotelier" | "website">(
-    pathname.startsWith("/web-settings") ? "website" : "hotelier",
-  );
+  const [section, setSection] = useState<"hotelier" | "website">("hotelier");
   const [menuSearch, setMenuSearch] = useState("");
   const currentGroup = pathname.startsWith("/payments")
     ? "Payments"
@@ -276,24 +274,6 @@ export function Sidebar({
             >
               <Icon name="rooms" width={18} height={18} />
               <span>HOTELIER</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={section === "website"}
-              className={
-                section === "website"
-                  ? "sidebar-section-tab sidebar-section-tab--active"
-                  : "sidebar-section-tab"
-              }
-              onClick={() => {
-                setSection("website");
-                setMenuSearch("");
-              }}
-              title={t("website.title")}
-            >
-              <Icon name="globe" width={18} height={18} />
-              <span>{t("website.title")}</span>
             </button>
           </div>
           <div className="sidebar-menu-search">
