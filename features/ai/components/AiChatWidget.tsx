@@ -11,13 +11,15 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "../../../components/ui/Icon";
-import { AiMessageContent } from "./AiMessageContent";
+import { AiMessageContent, hasAiMarkdownTable } from "./AiMessageContent";
 import { restoreSession } from "../../../lib/auth";
 import { useTranslations } from "../../../lib/i18n";
 import {
   aiErrorText,
   askAi,
+  exportAiCsv,
   getAiConversation,
+  isAiExportCommand,
   listAiConversations,
   type AiMessage,
 } from "../services/ai";
@@ -36,10 +38,29 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
+  const [exportStatus, setExportStatus] = useState("");
   const launcherRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onConversationDeleted(event: Event) {
+      const deletedId = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (deletedId !== conversationId) return;
+      setConversationId(null);
+      setEntries([]);
+      setHistoryLoaded(false);
+      setHistoryError(false);
+    }
+    window.addEventListener("ai-conversation-deleted", onConversationDeleted);
+    return () =>
+      window.removeEventListener(
+        "ai-conversation-deleted",
+        onConversationDeleted,
+      );
+  }, [conversationId]);
 
   useEffect(() => {
     if (!open || historyLoaded) return;
@@ -97,8 +118,13 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
     event?.preventDefault();
     const message = draft.trim();
     if (!message || busy || historyLoading) return;
+    if (isAiExportCommand(message)) {
+      await exportCsv(message);
+      return;
+    }
     setBusy(true);
     setError("");
+    setExportStatus("");
     setPendingQuestion(message);
     setDraft("");
     try {
@@ -114,6 +140,39 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
       setError(aiErrorText(cause, t, t("sendFailed")));
     } finally {
       setPendingQuestion("");
+      setBusy(false);
+      inputRef.current?.focus();
+    }
+  }
+
+  async function exportCsv(message: string) {
+    setBusy(true);
+    setExporting(true);
+    setError("");
+    setExportStatus("");
+    try {
+      const exported = await exportAiCsv(message, conversationId ?? undefined);
+      setDraft("");
+      setExportStatus(
+        exported.rowCount === null
+          ? t("exportSuccess")
+          : t("exportSuccessRows", { count: exported.rowCount }),
+      );
+      if (exported.conversationId) {
+        setConversationId(exported.conversationId);
+        try {
+          const page = await getAiConversation(exported.conversationId);
+          setConversationId(page.conversation.id);
+          setEntries(page.messages);
+          setHistoryError(false);
+        } catch {
+          setHistoryError(true);
+        }
+      }
+    } catch (cause) {
+      setError(aiErrorText(cause, t, t("exportFailed")));
+    } finally {
+      setExporting(false);
       setBusy(false);
       inputRef.current?.focus();
     }
@@ -155,6 +214,7 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
                   setConversationId(null);
                   setEntries([]);
                   setError("");
+                  setExportStatus("");
                   setHistoryError(false);
                   inputRef.current?.focus();
                 }}
@@ -193,7 +253,7 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
                 {entries.map((entry) => (
                   <article
                     key={entry.id}
-                    className={`ai-widget__message ai-widget__message--${entry.role}`}
+                    className={`ai-widget__message ai-widget__message--${entry.role}${entry.role === "assistant" && hasAiMarkdownTable(entry.content) ? " ai-widget__message--table" : ""}`}
                   >
                     <strong>
                       {entry.role === "user" ? t("you") : t("assistant")}
@@ -214,7 +274,7 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
                     <p>{pendingQuestion}</p>
                   </article>
                 )}
-                {busy && (
+                {busy && !exporting && (
                   <p className="ai-widget__loading" role="status">
                     {t("loading")}
                   </p>
@@ -249,6 +309,16 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
                 {error}
               </p>
             )}
+            {exporting && (
+              <p className="ai-widget__status" role="status">
+                {t("exporting")}
+              </p>
+            )}
+            {exportStatus && (
+              <p className="ai-widget__status" role="status">
+                {exportStatus}
+              </p>
+            )}
             <div className="ai-widget__actions">
               <Link href="/ai">{t("widget.fullPage")}</Link>
               <button
@@ -269,7 +339,7 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
           title={t("widget.open")}
           onClick={() => setOpen(true)}
         >
-          <Icon name="chat" width={23} height={23} />
+          <Icon name="aiAssistant" width={25} height={25} />
         </button>
       )}
     </div>

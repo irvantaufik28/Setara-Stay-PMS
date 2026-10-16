@@ -74,11 +74,39 @@ export function getAiConversation(
   );
 }
 
-export function exportAiCsv(message: string): Promise<Blob> {
-  return apiDownload("ai/export", {
-    method: "POST",
-    body: { message },
+export function deleteAiConversation(id: string): Promise<void> {
+  return apiRequest<void>(`ai/conversations/${encodeURIComponent(id)}`, {
+    method: "DELETE",
   });
+}
+
+export function isAiExportCommand(message: string): boolean {
+  const request = message.trim();
+  if (/^(?:bagaimana|gimana|cara|apakah|kenapa|mengapa)\b/i.test(request))
+    return false;
+  return /\b(?:export|ekspor|unduh|download)\b|\bbuat(?:kan)?\s+(?:file\s+)?csv\b/i.test(
+    request,
+  );
+}
+
+export async function exportAiCsv(
+  message: string,
+  conversationId?: string,
+): Promise<{ conversationId: string | null; rowCount: number | null }> {
+  const result = await apiDownload("ai/export", {
+    method: "POST",
+    body: { message, ...(conversationId ? { conversationId } : {}) },
+  });
+  const url = URL.createObjectURL(result.blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download =
+    result.filename?.replace(/[^a-zA-Z0-9._-]/g, "") || "hotel-export.csv";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return { conversationId: result.conversationId, rowCount: result.rowCount };
 }
 
 export function aiErrorText(

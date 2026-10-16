@@ -132,6 +132,11 @@
   background: #fff;
 }
 
+.ai-widget__message--table {
+  width: 100%;
+  max-width: 100%;
+}
+
 .ai-widget__message > strong {
   display: block;
   margin-bottom: 4px;
@@ -241,6 +246,12 @@
 .ai-widget__error {
   margin: 0;
   color: #a22626;
+  font-size: 12px;
+}
+
+.ai-widget__status {
+  margin: 0;
+  color: var(--primary);
   font-size: 12px;
 }
 

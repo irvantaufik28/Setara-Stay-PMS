@@ -133,7 +133,12 @@ export async function apiRequest<T>(
 export async function apiDownload(
   path: string,
   options: ApiRequestOptions = {},
-): Promise<Blob> {
+): Promise<{
+  blob: Blob;
+  filename: string | null;
+  conversationId: string | null;
+  rowCount: number | null;
+}> {
   const {
     auth = true,
     body,
@@ -162,5 +167,20 @@ export async function apiDownload(
     if (refreshedToken) response = await send(refreshedToken);
   }
   if (!response.ok) await readResponse<never>(response);
-  return response.blob();
+  const filename =
+    response.headers
+      .get("Content-Disposition")
+      ?.match(/filename="([^"]+)"/)?.[1] ?? null;
+  const rowCountHeader = response.headers.get("X-Export-Row-Count");
+  const parsedRowCount =
+    rowCountHeader === null ? null : Number(rowCountHeader);
+  return {
+    blob: await response.blob(),
+    filename,
+    conversationId: response.headers.get("X-AI-Conversation-Id"),
+    rowCount:
+      parsedRowCount !== null && Number.isFinite(parsedRowCount)
+        ? parsedRowCount
+        : null,
+  };
 }

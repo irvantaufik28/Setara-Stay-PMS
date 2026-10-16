@@ -9,31 +9,26 @@ import {
   type KeyboardEvent,
 } from "react";
 import { AdminShell } from "../../../components/layout/AdminShell";
-import { AiMessageContent } from "../components/AiMessageContent";
+import { Icon } from "../../../components/ui/Icon";
+import {
+  AiMessageContent,
+  hasAiMarkdownTable,
+} from "../components/AiMessageContent";
 import { restoreSession } from "../../../lib/auth";
 import { useTranslations } from "../../../lib/i18n";
 import {
   aiErrorText,
   askAi,
+  deleteAiConversation,
   exportAiCsv,
   getAiConversation,
+  isAiExportCommand,
   listAiConversations,
   type AiConversation,
   type AiMessage,
 } from "../services/ai";
 import en from "../locales/en.json";
 import id from "../locales/id.json";
-
-function downloadCsv(blob: Blob) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `hotel-export-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 0);
-}
 
 export function AiAssistantPage() {
   const { t } = useTranslations({ en, id });
@@ -47,6 +42,9 @@ export function AiAssistantPage() {
   const [listLoading, setListLoading] = useState(false);
   const [olderLoading, setOlderLoading] = useState(false);
   const [historyError, setHistoryError] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [busy, setBusy] = useState<"chat" | "export" | null>(null);
@@ -54,8 +52,24 @@ export function AiAssistantPage() {
   const [exportStatus, setExportStatus] = useState("");
   const selectionVersion = useRef(0);
   const skipNextScroll = useRef(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const conversationRef = useRef<HTMLElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const newChatRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+    function closeMenu(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !menuRef.current?.contains(event.target)
+      ) {
+        setOpenMenuId(null);
+      }
+    }
+    document.addEventListener("pointerdown", closeMenu);
+    return () => document.removeEventListener("pointerdown", closeMenu);
+  }, [openMenuId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -77,6 +91,7 @@ export function AiAssistantPage() {
           setEntries(page.messages);
           setMessagesHasMore(page.hasMore);
           setNextBefore(page.nextBefore);
+          setHistoryError(false);
         }
       } catch {
         if (!controller.signal.aborted) setHistoryError(true);
@@ -92,11 +107,18 @@ export function AiAssistantPage() {
       skipNextScroll.current = false;
       return;
     }
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const conversation = conversationRef.current;
+    conversation?.scrollTo({
+      top: conversation.scrollHeight,
+      behavior: "smooth",
+    });
   }, [entries, busy]);
 
   async function selectConversation(conversationId: string) {
-    if (busy || historyLoading || selectedId === conversationId) return;
+    if (busy || deletingId || historyLoading || selectedId === conversationId)
+      return;
+    setOpenMenuId(null);
+    setDeleteError("");
     const version = ++selectionVersion.current;
     setSelectedId(conversationId);
     setEntries([]);
@@ -117,7 +139,9 @@ export function AiAssistantPage() {
   }
 
   function newConversation() {
-    if (busy) return;
+    if (busy || deletingId) return;
+    setOpenMenuId(null);
+    setDeleteError("");
     selectionVersion.current += 1;
     setSelectedId(null);
     setEntries([]);
@@ -128,6 +152,40 @@ export function AiAssistantPage() {
     setError("");
     setExportStatus("");
     inputRef.current?.focus();
+  }
+
+  async function removeConversation(conversation: AiConversation) {
+    setOpenMenuId(null);
+    if (!window.confirm(t("deleteConfirm", { title: conversation.title })))
+      return;
+    setDeleteError("");
+    setDeletingId(conversation.id);
+    try {
+      await deleteAiConversation(conversation.id);
+      setConversations((current) =>
+        current.filter((item) => item.id !== conversation.id),
+      );
+      if (selectedId === conversation.id) {
+        selectionVersion.current += 1;
+        setSelectedId(null);
+        setEntries([]);
+        setMessagesHasMore(false);
+        setNextBefore(null);
+        setHistoryError(false);
+        setError("");
+        setExportStatus("");
+      }
+      window.dispatchEvent(
+        new CustomEvent("ai-conversation-deleted", {
+          detail: { id: conversation.id },
+        }),
+      );
+      window.requestAnimationFrame(() => newChatRef.current?.focus());
+    } catch (cause) {
+      setDeleteError(aiErrorText(cause, t, t("deleteFailed")));
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   async function loadOlderMessages() {
@@ -177,7 +235,11 @@ export function AiAssistantPage() {
   async function sendQuestion(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     const message = draft.trim();
-    if (!message || busy || historyLoading) return;
+    if (!message || busy || deletingId || historyLoading) return;
+    if (isAiExportCommand(message)) {
+      await exportCsv(message);
+      return;
+    }
     setError("");
     setExportStatus("");
     setBusy("chat");
@@ -207,15 +269,35 @@ export function AiAssistantPage() {
     }
   }
 
-  async function exportCsv() {
-    const message = draft.trim();
-    if (!message || busy) return;
+  async function exportCsv(message = draft.trim()) {
+    if (!message || busy || deletingId || historyLoading) return;
     setError("");
     setExportStatus("");
     setBusy("export");
     try {
-      downloadCsv(await exportAiCsv(message));
-      setExportStatus(t("exportSuccess"));
+      const exported = await exportAiCsv(message, selectedId ?? undefined);
+      setDraft("");
+      setExportStatus(
+        exported.rowCount === null
+          ? t("exportSuccess")
+          : t("exportSuccessRows", { count: exported.rowCount }),
+      );
+      if (exported.conversationId) {
+        setSelectedId(exported.conversationId);
+        try {
+          const page = await getAiConversation(exported.conversationId);
+          setSelectedId(page.conversation.id);
+          setEntries(page.messages);
+          setMessagesHasMore(page.hasMore);
+          setNextBefore(page.nextBefore);
+          setHistoryError(false);
+          const list = await listAiConversations();
+          setConversations(list.items);
+          setListHasMore(list.hasMore);
+        } catch {
+          setHistoryError(true);
+        }
+      }
     } catch (cause) {
       setError(aiErrorText(cause, t, t("exportFailed")));
     } finally {
@@ -238,52 +320,106 @@ export function AiAssistantPage() {
   return (
     <AdminShell title={t("shell.title")} context={t("shell.context")}>
       <div className="ai-page">
-        <header className="ai-page__header">
-          <div>
-            <h1>{t("title")}</h1>
-            <p>{t("description")}</p>
-          </div>
-          <button
-            type="button"
-            className="ai-page__clear"
-            disabled={busy !== null || historyLoading}
-            onClick={newConversation}
-          >
-            {t("newChat")}
-          </button>
-        </header>
-
         <div className="ai-workspace">
           <aside className="ai-history" aria-label={t("historyTitle")}>
-            <h2>{t("historyTitle")}</h2>
+            <button
+              type="button"
+              ref={newChatRef}
+              className="ai-history__new"
+              disabled={busy !== null || deletingId !== null || historyLoading}
+              onClick={newConversation}
+            >
+              <Icon name="plus" width={17} height={17} />
+              {t("newChat")}
+            </button>
+            <h1>{t("historyTitle")}</h1>
+            {historyLoading && conversations.length === 0 && (
+              <p className="ai-history__empty" role="status">
+                {t("historyLoading")}
+              </p>
+            )}
             {conversations.length === 0 && !historyLoading && !historyError && (
               <p className="ai-history__empty">{t("historyEmpty")}</p>
             )}
             <div className="ai-history__list">
               {conversations.map((conversation) => (
-                <button
+                <div
                   key={conversation.id}
-                  type="button"
+                  ref={openMenuId === conversation.id ? menuRef : null}
                   className={
                     conversation.id === selectedId
-                      ? "ai-history__item ai-history__item--active"
-                      : "ai-history__item"
+                      ? "ai-history__row ai-history__row--active"
+                      : "ai-history__row"
                   }
-                  aria-current={
-                    conversation.id === selectedId ? "true" : undefined
-                  }
-                  disabled={busy !== null || historyLoading}
-                  onClick={() => void selectConversation(conversation.id)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Escape") return;
+                    setOpenMenuId(null);
+                    event.currentTarget
+                      .querySelector<HTMLButtonElement>(
+                        ".ai-history__menu-trigger",
+                      )
+                      ?.focus();
+                  }}
                 >
-                  {conversation.title}
-                </button>
+                  <button
+                    type="button"
+                    className="ai-history__item"
+                    aria-current={
+                      conversation.id === selectedId ? "true" : undefined
+                    }
+                    title={conversation.title}
+                    disabled={
+                      busy !== null || deletingId !== null || historyLoading
+                    }
+                    onClick={() => void selectConversation(conversation.id)}
+                  >
+                    {conversation.title}
+                  </button>
+                  <button
+                    type="button"
+                    className="ai-history__menu-trigger"
+                    aria-label={t("conversationOptions", {
+                      title: conversation.title,
+                    })}
+                    aria-expanded={openMenuId === conversation.id}
+                    aria-controls={
+                      openMenuId === conversation.id
+                        ? `ai-history-menu-${conversation.id}`
+                        : undefined
+                    }
+                    disabled={
+                      busy !== null || deletingId !== null || historyLoading
+                    }
+                    onClick={() =>
+                      setOpenMenuId((current) =>
+                        current === conversation.id ? null : conversation.id,
+                      )
+                    }
+                  >
+                    <Icon name="more" width={18} height={18} />
+                  </button>
+                  {openMenuId === conversation.id && (
+                    <div
+                      id={`ai-history-menu-${conversation.id}`}
+                      className="ai-history__menu"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => void removeConversation(conversation)}
+                      >
+                        <Icon name="trash" width={16} height={16} />
+                        {t("deleteConversation")}
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
             {listHasMore && (
               <button
                 type="button"
                 className="ai-history__more"
-                disabled={listLoading}
+                disabled={listLoading || deletingId !== null}
                 onClick={() => void loadMoreConversations()}
               >
                 {t("loadMore")}
@@ -294,10 +430,21 @@ export function AiAssistantPage() {
                 {t("historyError")}
               </p>
             )}
+            {deleteError && (
+              <p className="ai-history__error" role="alert">
+                {deleteError}
+              </p>
+            )}
+            {deletingId && (
+              <p className="ai-history__empty" role="status">
+                {t("deletingConversation")}
+              </p>
+            )}
           </aside>
 
           <div className="ai-chat-column">
             <section
+              ref={conversationRef}
               className="ai-conversation"
               aria-label={t("title")}
               aria-busy={historyLoading || busy === "chat"}
@@ -334,7 +481,7 @@ export function AiAssistantPage() {
                   {entries.map((entry) => (
                     <article
                       key={entry.id}
-                      className={`ai-message ai-message--${entry.role}`}
+                      className={`ai-message ai-message--${entry.role}${entry.role === "assistant" && hasAiMarkdownTable(entry.content) ? " ai-message--table" : ""}`}
                     >
                       <h2>
                         {entry.role === "user" ? t("you") : t("assistant")}
@@ -373,7 +520,6 @@ export function AiAssistantPage() {
                       {t("loading")}
                     </div>
                   )}
-                  <div ref={bottomRef} />
                 </div>
               )}
             </section>
@@ -391,8 +537,10 @@ export function AiAssistantPage() {
                 onKeyDown={handleKeyDown}
                 placeholder={t("inputPlaceholder")}
                 maxLength={1000}
-                rows={3}
-                disabled={busy !== null || historyLoading}
+                rows={1}
+                disabled={
+                  busy !== null || deletingId !== null || historyLoading
+                }
               />
               <div className="ai-composer__actions">
                 <span className="ai-composer__count">{draft.length}/1000</span>
@@ -400,14 +548,24 @@ export function AiAssistantPage() {
                   <button
                     type="button"
                     className="ai-composer__export"
-                    disabled={!draft.trim() || busy !== null}
+                    disabled={
+                      !draft.trim() ||
+                      busy !== null ||
+                      deletingId !== null ||
+                      historyLoading
+                    }
                     onClick={() => void exportCsv()}
                   >
                     {busy === "export" ? t("exporting") : t("export")}
                   </button>
                   <button
                     type="submit"
-                    disabled={!draft.trim() || busy !== null || historyLoading}
+                    disabled={
+                      !draft.trim() ||
+                      busy !== null ||
+                      deletingId !== null ||
+                      historyLoading
+                    }
                   >
                     {busy === "chat" ? t("loading") : t("send")}
                   </button>

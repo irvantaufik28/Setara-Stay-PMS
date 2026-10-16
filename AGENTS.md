@@ -34,6 +34,7 @@ features/<feature>/
 2. **`components/` holds everything else** — the smaller building blocks that pages compose (forms, modals, field controls, table cells, …).
 
 3. **Routing stays thin.** Files in `app/**/page.tsx` should only import a page component from a feature and render it. Example:
+
    ```tsx
    import { CampaignsPage } from "../../features/campaigns/pages/CampaignsPage";
    export default function Page() {
@@ -67,3 +68,10 @@ Format CSS (and other files) with Prettier before committing:
 ```bash
 npx prettier --write "<path>"
 ```
+
+<!-- antislop:start -->
+
+## antislop
+
+For UI work, use the installed `antislop:antislop` core skill with `antislop:antislop-ui` and `antislop:antislop-human`. Resolve its DURING/AFTER mode from the current session choice first, then the global preference, then ask. Read the existing admin design as direction before editing, and run the skill's delivery gate before handing over UI changes.
+<!-- antislop:end -->

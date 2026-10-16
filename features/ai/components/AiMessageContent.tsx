@@ -23,6 +23,10 @@ const allowedElements = [
   "del",
 ];
 
+export function hasAiMarkdownTable(content: string): boolean {
+  return /^\s*\|.+\|\s*\n\s*\|(?:\s*:?-+:?\s*\|)+/m.test(content);
+}
+
 export function AiMessageContent({ content }: { content: string }) {
   const closingThink = content.toLowerCase().lastIndexOf("</think>");
   const visibleContent =
