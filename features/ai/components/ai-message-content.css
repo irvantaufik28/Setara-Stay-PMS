@@ -1,0 +1,93 @@
+.ai-markdown > :first-child {
+  margin-top: 0;
+}
+
+.ai-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.ai-markdown p + p,
+.ai-markdown p + ul,
+.ai-markdown p + ol,
+.ai-markdown ul + p,
+.ai-markdown ol + p {
+  margin-top: 0.7em;
+}
+
+.ai-markdown ul,
+.ai-markdown ol {
+  margin-bottom: 0.7em;
+  padding-left: 1.35em;
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.ai-markdown li + li {
+  margin-top: 0.25em;
+}
+
+.ai-markdown strong {
+  font-weight: 700;
+}
+
+.ai-markdown code,
+.ai-markdown pre {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.ai-markdown pre {
+  overflow-x: auto;
+}
+
+.ai-markdown blockquote {
+  margin: 0.7em 0;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--border);
+}
+
+.ai-markdown__table-scroll {
+  max-width: 100%;
+  margin: 0.75em 0;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.ai-markdown__table-scroll:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.ai-markdown__table-scroll table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  color: var(--text-primary);
+  font-size: 0.93em;
+  line-height: 1.45;
+}
+
+.ai-markdown__table-scroll th,
+.ai-markdown__table-scroll td {
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.ai-markdown__table-scroll th {
+  background: #edf2ed;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.ai-markdown__table-scroll tr:last-child td {
+  border-bottom: 0;
+}
+
+.ai-markdown__table-scroll tbody tr:nth-child(even) {
+  background: #f8faf8;
+}

@@ -20,6 +20,7 @@ type Props = {
 type Item = { label: string; icon: IconName; children?: string[] };
 const items: Item[] = [
   { label: "Dashboard", icon: "dashboard" },
+  { label: "AI Assistant", icon: "chat" },
   { label: "Reservation Calendar", icon: "rooms" },
   {
     label: "Reservations",
@@ -111,6 +112,7 @@ const reservationRoutes: Record<string, string> = {
 // Top-level items that have their own dedicated route
 const topLevelRoutes: Record<string, string> = {
   Dashboard: "/dashboard",
+  "AI Assistant": "/ai",
   "Reservation Calendar": "/reservations/room-rack",
   "Prices & Stocks": "/prices-stocks",
   "Cancellation Policies": "/cancellation-policies",

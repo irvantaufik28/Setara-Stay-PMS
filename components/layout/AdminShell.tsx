@@ -2,10 +2,17 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, getSessionRemainingMs, logout, restoreSession, type AuthUser } from "../../lib/auth";
+import {
+  getCurrentUser,
+  getSessionRemainingMs,
+  logout,
+  restoreSession,
+  type AuthUser,
+} from "../../lib/auth";
 import { Navbar } from "./Navbar";
 import { Sidebar, hydrateSidebarOpenGroups } from "./Sidebar";
 import { LoadingSkeleton } from "../ui/LoadingSkeleton";
+import { AiChatWidget } from "../../features/ai/components/AiChatWidget";
 
 let authorizedInTab = false;
 let pinnedInTab: boolean | null = null;
@@ -37,7 +44,8 @@ export function AdminShell({ title, context, badge, children }: Props) {
         return;
       }
       hydrateSidebarOpenGroups();
-      pinnedInTab = sessionStorage.getItem("green-hero-sidebar-pinned") !== "false";
+      pinnedInTab =
+        sessionStorage.getItem("green-hero-sidebar-pinned") !== "false";
       setPinned(pinnedInTab);
       if (sessionStorage.getItem("green-hero-demo-notice-pending") === "true") {
         sessionStorage.removeItem("green-hero-demo-notice-pending");
@@ -47,7 +55,9 @@ export function AdminShell({ title, context, badge, children }: Props) {
       authorizedInTab = true;
       setAuthorized(true);
     });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   useEffect(() => {
@@ -95,7 +105,11 @@ export function AdminShell({ title, context, badge, children }: Props) {
   }
 
   if (!authorized)
-    return <main className="dashboard-loading dashboard-loading--skeleton"><LoadingSkeleton variant="dashboard" /></main>;
+    return (
+      <main className="dashboard-loading dashboard-loading--skeleton">
+        <LoadingSkeleton variant="dashboard" />
+      </main>
+    );
 
   return (
     <div className={pinned ? "admin-shell admin-shell--pinned" : "admin-shell"}>
@@ -115,6 +129,7 @@ export function AdminShell({ title, context, badge, children }: Props) {
         onSignOut={signOut}
       />
       <main className="admin-main">{children}</main>
+      <AiChatWidget suspended={mobileOpen || demoNoticeOpen} />
       {notice && (
         <div className="admin-notice" role="status">
           {notice}
@@ -129,15 +144,28 @@ export function AdminShell({ title, context, badge, children }: Props) {
       )}
       {demoNoticeOpen && (
         <div className="demo-notice-backdrop">
-          <section className="demo-notice-modal" role="dialog" aria-modal="true" aria-labelledby="demo-notice-title" aria-describedby="demo-notice-description">
+          <section
+            className="demo-notice-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="demo-notice-title"
+            aria-describedby="demo-notice-description"
+          >
             <span className="demo-notice-eyebrow">SETARA STAY DEMO</span>
             <h2 id="demo-notice-title">Selamat datang di versi demo</h2>
             <p id="demo-notice-description">
               Sistem ini dibuat untuk memperlihatkan alur kerja admin hotel.
-              Data reservasi, tamu, kamar, dan pembayaran yang tampil adalah data contoh.
-              Perubahan tertentu hanya tersimpan selama sesi browser dan belum memproses transaksi nyata.
+              Data reservasi, tamu, kamar, dan pembayaran yang tampil adalah
+              data contoh. Perubahan tertentu hanya tersimpan selama sesi
+              browser dan belum memproses transaksi nyata.
             </p>
-            <button type="button" autoFocus onClick={() => setDemoNoticeOpen(false)}>Mulai Jelajahi</button>
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setDemoNoticeOpen(false)}
+            >
+              Mulai Jelajahi
+            </button>
           </section>
         </div>
       )}

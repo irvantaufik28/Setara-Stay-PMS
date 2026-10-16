@@ -11,6 +11,7 @@ export type IconName =
   | "payments"
   | "guests"
   | "reports"
+  | "chat"
   | "settings"
   | "plus"
   | "chevron"
@@ -94,6 +95,12 @@ const paths: Record<IconName, ReactNode> = {
   reports: (
     <>
       <path d="M4 20V4h16v16zM8 16v-4m4 4V8m4 8v-6" />
+    </>
+  ),
+  chat: (
+    <>
+      <path d="M4 4h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 3v-3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+      <path d="M7 9h10M7 13h7" />
     </>
   ),
   settings: (

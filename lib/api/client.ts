@@ -49,7 +49,10 @@ async function readResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const payload = data as ApiErrorPayload | null;
     throw new ApiError(
-      payload?.error?.message ?? payload?.message ?? response.statusText ?? "Request gagal.",
+      payload?.error?.message ??
+        payload?.message ??
+        response.statusText ??
+        "Request gagal.",
       response.status,
       payload?.error?.code,
     );
@@ -85,10 +88,19 @@ async function refreshAccessToken(): Promise<string | null> {
   return refreshPromise;
 }
 
-export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const { auth = true, body, headers: suppliedHeaders, ...requestOptions } = options;
+export async function apiRequest<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<T> {
+  const {
+    auth = true,
+    body,
+    headers: suppliedHeaders,
+    ...requestOptions
+  } = options;
   const headers = new Headers(suppliedHeaders);
-  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  const isFormData =
+    typeof FormData !== "undefined" && body instanceof FormData;
   if (body !== undefined && !isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
@@ -116,4 +128,39 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 
   return readResponse<T>(response);
+}
+
+export async function apiDownload(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<Blob> {
+  const {
+    auth = true,
+    body,
+    headers: suppliedHeaders,
+    ...requestOptions
+  } = options;
+  const headers = new Headers(suppliedHeaders);
+  headers.set("Content-Type", "application/json");
+  const url = `${apiBaseUrl}/${path.replace(/^\/+/, "")}`;
+
+  async function send(token: string | null): Promise<Response> {
+    const requestHeaders = new Headers(headers);
+    if (auth && token) requestHeaders.set("Authorization", `Bearer ${token}`);
+    return fetch(url, {
+      ...requestOptions,
+      body: JSON.stringify(body),
+      headers: requestHeaders,
+      credentials: "include",
+      cache: "no-store",
+    });
+  }
+
+  let response = await send(accessToken);
+  if (auth && response.status === 401) {
+    const refreshedToken = await refreshAccessToken();
+    if (refreshedToken) response = await send(refreshedToken);
+  }
+  if (!response.ok) await readResponse<never>(response);
+  return response.blob();
 }
