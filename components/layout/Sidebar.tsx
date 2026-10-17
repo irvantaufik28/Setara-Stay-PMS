@@ -66,7 +66,7 @@ const items: Item[] = [
   {
     label: "Reports",
     icon: "reports",
-    children: ["Reservation Report", "Room Performance", "Revenue"],
+    children: ["Daily Manager", "Reservation Report", "Room Performance", "Revenue"],
   },
   {
     label: "Settings",
@@ -94,6 +94,7 @@ const reservationRoutes: Record<string, string> = {
   "Room Numbers": "/rooms/numbers",
   "Reservation Report": "/reports/reservations",
   "Room Performance": "/reports/room-performance",
+  "Daily Manager": "/reports/manager-daily",
   Revenue: "/reports/revenue",
   "Roles & Permissions": "/settings/roles-permissions",
   Users: "/settings/users",
