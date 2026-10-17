@@ -232,6 +232,68 @@
 .night-audit-readonly {
   color: #515a54;
 }
+.night-audit-reconciliation,
+.night-audit-correction-history {
+  margin-top: 24px;
+}
+.night-audit-reconciliation h3,
+.night-audit-correction-history h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.night-audit-reconciliation p,
+.night-audit-correction-history p {
+  color: #515a54;
+}
+.night-audit-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.night-audit-reconciliation table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+.night-audit-reconciliation :is(th, td) {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.night-audit-reconciliation :is(th, td):first-child {
+  text-align: left;
+}
+.night-audit-reconciliation thead {
+  background: #f4f7f5;
+}
+.night-audit-correction-form {
+  display: grid;
+  justify-items: start;
+  gap: 9px;
+  margin-top: 16px;
+}
+.night-audit-correction-form label {
+  font-weight: 600;
+}
+.night-audit-correction-form textarea {
+  width: min(100%, 620px);
+  padding: 10px 12px;
+  border: 1px solid #6b726e;
+  border-radius: 6px;
+  font: inherit;
+  resize: vertical;
+}
+.night-audit-correction-history ol {
+  padding-left: 22px;
+}
+.night-audit-correction-history li {
+  padding: 8px 0;
+}
+.night-audit-correction-history li p {
+  margin: 5px 0;
+}
 @media (max-width: 720px) {
   .night-audit-heading,
   .night-audit-date {

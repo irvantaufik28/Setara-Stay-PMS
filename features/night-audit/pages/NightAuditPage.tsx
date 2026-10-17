@@ -77,6 +77,7 @@ export function NightAuditPage() {
     setError("");
     try {
       await setupAudit(startDate);
+      window.dispatchEvent(new Event("night-audit-updated"));
       await load();
     } catch (cause) {
       setError(
@@ -99,6 +100,7 @@ export function NightAuditPage() {
         previewToken: preview.previewToken,
         warningReason: warningReason.trim() || undefined,
       });
+      window.dispatchEvent(new Event("night-audit-updated"));
       await load();
       setClosed(result);
       setConfirmed(false);

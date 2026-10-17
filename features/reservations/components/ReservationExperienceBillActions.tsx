@@ -141,9 +141,9 @@ export function ReservationExperienceBillActions({ detail, onUpdated }: {
 
   return (
     <>
-      <button type="button" className="reservation-secondary-button" disabled={!canAdd}
+      <button type="button" className="reservation-secondary-button api-reservation-action api-reservation-action--experience-add" disabled={!canAdd}
         onClick={() => void openAdd()}>{t("experienceBill.addButton")}</button>
-      <button type="button" className="reservation-secondary-button" disabled={!canAdd}
+      <button type="button" className="reservation-secondary-button api-reservation-action api-reservation-action--experience-bill" disabled={!canAdd}
         onClick={() => void openBill()}>{pending.length ? t("experienceBill.saveBillCount", { count: pending.length }) : t("experienceBill.saveBill")}</button>
       {pending.length > 0 && <p className="reservation-detail-summary-hint">
         {t("experienceBill.pendingHint", { count: pending.length, total: rupiah(pendingTotal) })}

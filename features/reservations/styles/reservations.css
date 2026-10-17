@@ -2105,6 +2105,49 @@ select[aria-invalid="true"]:focus {
   width: 100%;
   justify-content: center;
 }
+.api-reservation-actions > .api-reservation-action {
+  min-height: 44px;
+  border: 1px solid var(--action-color);
+  background: var(--action-color);
+  color: #fff;
+  font-weight: 600;
+}
+.api-reservation-actions > .api-reservation-action:hover:not(:disabled) {
+  border-color: var(--action-color);
+  background: var(--action-color);
+  filter: brightness(0.88);
+}
+.api-reservation-actions > .api-reservation-action:focus-visible {
+  outline: 3px solid #173d31;
+  outline-offset: 3px;
+}
+.api-reservation-action--confirm {
+  --action-color: #173d31;
+}
+.api-reservation-action--payment {
+  --action-color: #24547a;
+}
+.api-reservation-action--check_in {
+  --action-color: #2a685f;
+}
+.api-reservation-action--check_out {
+  --action-color: #4d496e;
+}
+.api-reservation-action--no_show {
+  --action-color: #865217;
+}
+.api-reservation-action--cancel {
+  --action-color: #9a342b;
+}
+.api-reservation-action--extend {
+  --action-color: #4b5c66;
+}
+.api-reservation-action--experience-add {
+  --action-color: #5a6330;
+}
+.api-reservation-action--experience-bill {
+  --action-color: #72534b;
+}
 .api-reservation-actions > button:disabled {
   opacity: 0.5;
   cursor: not-allowed;

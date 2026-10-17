@@ -448,7 +448,26 @@
     flex-direction: column;
   }
   .navbar-date {
+    height: auto;
+    padding: 3px 5px;
+    font-size: 10px;
+  }
+  .navbar-date svg {
     display: none;
+  }
+  .navbar-actions {
+    gap: 4px;
+  }
+  .navbar-date:not(.navbar-date--audit) {
+    display: none;
+  }
+  .navbar-date--audit {
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+  }
+  .navbar-date-mobile-calendar {
+    display: inline;
   }
   .availability-strip {
     align-items: flex-start;

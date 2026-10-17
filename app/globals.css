@@ -727,6 +727,9 @@ button {
   font-size: 12px;
   white-space: nowrap;
 }
+.navbar-date-mobile-calendar {
+  display: none;
+}
 .navbar-icon-button {
   position: relative;
   width: 32px;

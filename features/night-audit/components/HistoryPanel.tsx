@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getCurrentUser } from "../../../lib/auth";
 import {
+  confirmAuditCorrection,
   getAuditDetail,
   getAuditHistory,
   type AuditDetail,
@@ -24,6 +26,18 @@ export function HistoryPanel() {
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
+  const [reason, setReason] = useState("");
+  const [saving, setSaving] = useState(false);
+  const canCorrect = (() => {
+    const user = getCurrentUser();
+    return Boolean(user?.permissions.includes("night_audit.close") && (user.roleName === "Owner" || user.roleName === "Manager"));
+  })();
+  const financialRows = [
+    ["Nilai kamar", "roomRevenue"],
+    ["Pembayaran diterima", "paymentsReceived"],
+    ["Refund dibayar", "refundsPaid"],
+  ] as const;
+  const pending = detail && Object.values(detail.financialReconciliation.pendingDelta).some((value) => value !== 0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -57,6 +71,21 @@ export function HistoryPanel() {
       );
     } finally {
       setDetailLoading(false);
+    }
+  }
+
+  async function confirmCorrection() {
+    if (!detail || saving || reason.trim().length < 3) return;
+    setSaving(true);
+    setError("");
+    try {
+      await confirmAuditCorrection(detail.businessDate, reason.trim(), detail.financialReconciliation.previewToken);
+      setReason("");
+      await openDetail(detail.businessDate);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Koreksi gagal dicatat.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -167,8 +196,53 @@ export function HistoryPanel() {
               <strong>Alasan warning:</strong> {detail.snapshot.warningReason}
             </p>
           )}
+          <section className="night-audit-reconciliation" aria-label="Rekonsiliasi keuangan">
+            <h3>Rekonsiliasi keuangan</h3>
+            <p>Snapshot penutupan tetap utuh. Selisih berikut dihitung dari data transaksi saat ini.</p>
+            <div className="night-audit-table-wrap">
+              <table>
+                <thead><tr><th>Komponen</th><th>Saat ditutup</th><th>Disetujui</th><th>Data kini</th><th>Belum dikonfirmasi</th></tr></thead>
+                <tbody>
+                  {financialRows.map(([label, key]) => (
+                    <tr key={key}>
+                      <th scope="row">{label}</th>
+                      <td>{money(detail.financialReconciliation.original[key])}</td>
+                      <td>{money(detail.financialReconciliation.accepted[key])}</td>
+                      <td>{money(detail.financialReconciliation.actual[key])}</td>
+                      <td>{money(detail.financialReconciliation.pendingDelta[key])}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {pending && canCorrect && (
+              <div className="night-audit-correction-form">
+                <label htmlFor="night-audit-correction-reason">Alasan koreksi</label>
+                <textarea id="night-audit-correction-reason" value={reason} onChange={(event) => setReason(event.target.value)} maxLength={1000} rows={3} />
+                <button type="button" className="night-audit-primary" disabled={saving || reason.trim().length < 3} onClick={() => void confirmCorrection()}>
+                  {saving ? "Mencatat..." : "Konfirmasi selisih"}
+                </button>
+              </div>
+            )}
+            {pending && !canCorrect && <p>Selisih hanya dapat dikonfirmasi oleh Owner atau Manager.</p>}
+            {!pending && <p>Tidak ada selisih yang menunggu konfirmasi.</p>}
+          </section>
+          <section className="night-audit-correction-history">
+            <h3>Jejak koreksi</h3>
+            {detail.corrections.length ? (
+              <ol>
+                {detail.corrections.map((entry) => (
+                  <li key={entry.id}>
+                    <strong>{dateTime(entry.createdAt)} WIB · {entry.actorName}</strong>
+                    <p>{entry.reason}</p>
+                    <span>Nilai kamar {money(entry.delta.roomRevenue)} · Pembayaran {money(entry.delta.paymentsReceived)} · Refund {money(entry.delta.refundsPaid)}</span>
+                  </li>
+                ))}
+              </ol>
+            ) : <p>Belum ada koreksi.</p>}
+          </section>
           <p className="night-audit-readonly">
-            Snapshot ini hanya dapat dilihat, tidak dapat diubah.
+            Snapshot asli tidak dapat diubah; konfirmasi selisih dicatat terpisah.
           </p>
         </div>
       ) : (

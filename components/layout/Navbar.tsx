@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Icon } from "../ui/Icon";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import type { AuthUser } from "../../lib/auth";
+import { getAuditDateContext, type AuditDateContext } from "../../features/night-audit/services/night-audit";
 
 type Props = {
   user: AuthUser | null;
@@ -25,6 +26,8 @@ export function Navbar({
 }: Props) {
   const [menu, setMenu] = useState<"notifications" | "profile" | null>(null);
   const [currentDate, setCurrentDate] = useState("");
+  const [auditDate, setAuditDate] = useState<AuditDateContext | null>(null);
+  const userId = user?.id;
 
   useEffect(() => {
     const formatter = new Intl.DateTimeFormat("en-GB", {
@@ -39,6 +42,24 @@ export function Navbar({
     const interval = window.setInterval(updateDate, 60_000);
     return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    const update = () => {
+      void getAuditDateContext()
+        .then((value) => { if (active) setAuditDate(value); })
+        .catch(() => { if (active) setAuditDate(null); });
+    };
+    update();
+    window.addEventListener("focus", update);
+    window.addEventListener("night-audit-updated", update);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", update);
+      window.removeEventListener("night-audit-updated", update);
+    };
+  }, [userId]);
 
   return (
     <header className="admin-navbar">
@@ -59,7 +80,11 @@ export function Navbar({
       <div className="navbar-actions">
         <div className="navbar-date">
           <Icon name="calendar" width={16} height={16} />
-          <span>{currentDate || "—"}</span>
+          <span>Kalender: {currentDate || "Memuat"}</span>
+        </div>
+        <div className="navbar-date navbar-date--audit" title={auditDate?.recoveryRequired ? "Riwayat audit perlu diperiksa" : "Tanggal operasional yang belum ditutup"}>
+          <span className="navbar-date-mobile-calendar">Kal: {currentDate || "Memuat"} · </span>
+          <span>Audit: {auditDate?.recoveryRequired ? "Perlu diperiksa" : auditDate?.businessDate ?? "Belum diatur"}</span>
         </div>
         {badge && (
           <span className="navbar-shift">

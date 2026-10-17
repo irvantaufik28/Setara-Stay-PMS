@@ -192,7 +192,6 @@ export function ReservationDetailActions({
       deposit.amountHeld > deposit.amountRefunded + deposit.amountDeducted,
   );
   const isInHouse = detail.reservation.reservationStatus === "checked_in";
-  const isPending = detail.reservation.reservationStatus === "pending";
   const hasBalance = detail.summary.remainingBalance > 0;
   const checkInProjectedOutstanding =
     detail.summary.remainingBalance +
@@ -630,19 +629,11 @@ export function ReservationDetailActions({
         />
       )}
       <div className="api-reservation-actions">
-        {isPending && hasBalance && (
-          <button
-            type="button"
-            className="action-button reservation-detail-main-action"
-            title={t("detailActions.checkInNeedsConfirmed")}
-          >
-            {t("detailActions.confirmAndCheckIn")}
-          </button>
-        )}
         {presentation.actions
           .filter(
             (item) =>
-              item !== "no_show" || detail.reservation.checkInDate === todayISO,
+              (item !== "no_show" || detail.reservation.checkInDate === todayISO) &&
+              (item !== "check_in" || detail.reservation.checkInDate <= todayISO),
           )
           .filter((item) => userPermissions.includes(actionPermissions[item]))
           .map((item) => {
@@ -652,8 +643,8 @@ export function ReservationDetailActions({
                 type="button"
                 className={
                   item === "cancel" || item === "no_show"
-                    ? "reservation-secondary-button"
-                    : "action-button"
+                    ? `reservation-secondary-button api-reservation-action api-reservation-action--${item}`
+                    : `action-button api-reservation-action api-reservation-action--${item}`
                 }
                 onClick={() => void openAction(item)}
               >
@@ -667,7 +658,7 @@ export function ReservationDetailActions({
           <>
             <button
               type="button"
-              className="reservation-secondary-button"
+              className="reservation-secondary-button api-reservation-action api-reservation-action--extend"
               onClick={() => void openAction("extend")}
               disabled={!userPermissions.includes("reservations.extend_stay")}
             >

@@ -56,7 +56,41 @@ export type AuditHistory = {
 
 export type AuditDetail = AuditHistoryItem & {
   snapshot: AuditPreview & { warningReason?: string | null };
+  corrections: Array<{
+    id: string;
+    actorName: string;
+    reason: string;
+    createdAt: string;
+    delta: FinancialSummary;
+  }>;
+  financialReconciliation: {
+    original: FinancialSummary;
+    accepted: FinancialSummary;
+    actual: FinancialSummary;
+    pendingDelta: FinancialSummary;
+    previewToken: string;
+  };
 };
+
+export type FinancialSummary = Pick<AuditPreview["summary"], "roomRevenue" | "paymentsReceived" | "refundsPaid">;
+
+export type AuditDateContext = {
+  calendarDate: string;
+  businessDate: string | null;
+  lastClosedDate: string | null;
+  recoveryRequired: boolean;
+};
+
+export function getAuditDateContext(signal?: AbortSignal) {
+  return apiRequest<AuditDateContext>("night-audit/date-context", { signal });
+}
+
+export function confirmAuditCorrection(businessDate: string, reason: string, previewToken: string) {
+  return apiRequest(`night-audit/history/${encodeURIComponent(businessDate)}/corrections`, {
+    method: "POST",
+    body: { reason, previewToken },
+  });
+}
 
 export function getAuditState(signal?: AbortSignal) {
   return apiRequest<AuditState>("night-audit/state", { signal });
