@@ -14,6 +14,7 @@ import {
   AiMessageContent,
   hasAiMarkdownTable,
 } from "../components/AiMessageContent";
+import { AiLoadingIndicator } from "../components/AiLoadingIndicator";
 import { restoreSession } from "../../../lib/auth";
 import { useTranslations } from "../../../lib/i18n";
 import {
@@ -516,9 +517,10 @@ export function AiAssistantPage() {
                     </article>
                   )}
                   {busy === "chat" && (
-                    <div className="ai-conversation__loading" role="status">
-                      {t("loading")}
-                    </div>
+                    <AiLoadingIndicator
+                      className="ai-conversation__loading"
+                      text={t("loading")}
+                    />
                   )}
                 </div>
               )}

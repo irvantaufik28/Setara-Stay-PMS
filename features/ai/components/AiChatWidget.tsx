@@ -12,6 +12,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "../../../components/ui/Icon";
 import { AiMessageContent, hasAiMarkdownTable } from "./AiMessageContent";
+import { AiLoadingIndicator } from "./AiLoadingIndicator";
 import { restoreSession } from "../../../lib/auth";
 import { useTranslations } from "../../../lib/i18n";
 import {
@@ -275,9 +276,10 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
                   </article>
                 )}
                 {busy && !exporting && (
-                  <p className="ai-widget__loading" role="status">
-                    {t("loading")}
-                  </p>
+                  <AiLoadingIndicator
+                    className="ai-widget__loading"
+                    text={t("loading")}
+                  />
                 )}
               </>
             )}
