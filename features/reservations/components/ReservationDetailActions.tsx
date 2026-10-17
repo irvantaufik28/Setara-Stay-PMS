@@ -34,6 +34,10 @@ import { getCurrentUser } from "../../../lib/auth";
 import { formatStayDate } from "../constants/walk-in-data";
 import { todayJakarta } from "../utils/stay-dates";
 import { isValidGuestNik, normalizeGuestNik } from "../utils/guest-identity";
+import {
+  planCheckoutDeposits,
+  type CheckoutDepositMode,
+} from "../utils/checkout-deposit";
 import { useTranslations } from "../../../lib/i18n";
 import en from "../locales/en.json";
 import idLocale from "../locales/id.json";
@@ -46,8 +50,6 @@ type Action =
   | "no_show"
   | "cancel"
   | "extend";
-type DepositMode = "defer" | "refund" | "deduct_balance" | "deduct_damage";
-
 const actionLabelKeys: Record<Action, string> = {
   confirm: "detailActions.labels.confirm",
   payment: "detailActions.labels.payment",
@@ -119,12 +121,20 @@ export function ReservationDetailActions({
     paymentTiming: "later",
   });
   const [reason, setReason] = useState("");
-  const [depositModes, setDepositModes] = useState<Record<string, DepositMode>>(
-    {},
-  );
+  const [depositModes, setDepositModes] = useState<
+    Record<string, CheckoutDepositMode | "">
+  >({});
   const [depositReferences, setDepositReferences] = useState<
     Record<string, string>
   >({});
+  const [depositDamageAmounts, setDepositDamageAmounts] = useState<
+    Record<string, string>
+  >({});
+  const [depositDamageReasons, setDepositDamageReasons] = useState<
+    Record<string, string>
+  >({});
+  const [checkoutPaymentNow, setCheckoutPaymentNow] = useState(false);
+  const [checkoutPaymentMethodId, setCheckoutPaymentMethodId] = useState("");
   const [requireDeposit, setRequireDeposit] = useState(false);
   const [depositAmount, setDepositAmount] = useState(300000);
   const [depositMethodId, setDepositMethodId] = useState("");
@@ -187,6 +197,7 @@ export function ReservationDetailActions({
     "reservations.checkout_outstanding_override",
   );
   const canRefund = userPermissions.includes("payments.refund");
+  const canRecordPayment = userPermissions.includes("payments.record");
   const activeDeposits = detail.deposits.filter(
     (deposit) =>
       deposit.amountHeld > deposit.amountRefunded + deposit.amountDeducted,
@@ -207,21 +218,36 @@ export function ReservationDetailActions({
     lateCheckOut.paymentTiming === "later"
       ? lateCheckOut.chargeAmount
       : 0);
-  const checkoutDepositDeduction = activeDeposits.reduce(
-    (sum, deposit) =>
-      sum +
-      (depositModes[deposit.id] === "deduct_balance"
-        ? deposit.amountHeld - deposit.amountRefunded - deposit.amountDeducted
-        : 0),
-    0,
-  );
-  const checkoutRemainingAfterDeductions = Math.max(
-    0,
-    checkoutProjectedBalance - checkoutDepositDeduction,
-  );
+  const checkoutDepositPlan = planCheckoutDeposits({
+    deposits: activeDeposits,
+    modes: depositModes,
+    damageAmounts: depositDamageAmounts,
+    damageReasons: depositDamageReasons,
+    refundReferences: depositReferences,
+    bookingBalance: checkoutProjectedBalance,
+    canRefund,
+  });
+  const hasDamageBalance = activeDeposits.some((deposit) => {
+    if (depositModes[deposit.id] !== "deduct_damage") return false;
+    const damageAmount = Number(depositDamageAmounts[deposit.id]);
+    return (
+      Number.isSafeInteger(damageAmount) &&
+      damageAmount >
+        deposit.amountHeld - deposit.amountRefunded - deposit.amountDeducted
+    );
+  });
+  const checkoutRemainingAfterDeductions = checkoutDepositPlan.remainingBalance;
+  const checkoutPaymentMethodMissing =
+    checkoutPaymentNow &&
+    checkoutRemainingAfterDeductions > 0 &&
+    !checkoutPaymentMethodId;
+  const checkoutRemainingAfterSettlement =
+    checkoutPaymentNow && canRecordPayment && !checkoutPaymentMethodMissing
+      ? 0
+      : checkoutRemainingAfterDeductions;
   const outstandingCheckOutBlocked =
     checkOutContext?.allowOutstandingCheckOut === false &&
-    checkoutRemainingAfterDeductions > 0;
+    checkoutRemainingAfterSettlement > 0;
   const checkInActionDisabled =
     !isValidGuestNik(guestNik) ||
     !checkInContext ||
@@ -234,6 +260,9 @@ export function ReservationDetailActions({
           !earlyCheckIn.paymentMethodId)));
   const checkOutActionDisabled =
     !checkOutContext ||
+    !checkoutDepositPlan.valid ||
+    checkoutPaymentMethodMissing ||
+    (checkoutPaymentNow && !canRecordPayment) ||
     outstandingCheckOutBlocked ||
     (checkOutContext.kind === "early_departure" &&
       !earlyDepartureAcknowledged) ||
@@ -242,7 +271,7 @@ export function ReservationDetailActions({
         (lateCheckOut.chargeAmount > 0 &&
           lateCheckOut.paymentTiming === "now" &&
           !lateCheckOut.paymentMethodId))) ||
-    (checkoutRemainingAfterDeductions > 0 &&
+    (checkoutRemainingAfterSettlement > 0 &&
       (!canOverrideCheckout || !acknowledged || !reason.trim()));
 
   async function openAction(next: Action) {
@@ -345,11 +374,13 @@ export function ReservationDetailActions({
         paymentTiming: "later",
       });
       setDepositModes(
-        Object.fromEntries(
-          activeDeposits.map((deposit) => [deposit.id, "defer"]),
-        ),
+        Object.fromEntries(activeDeposits.map((deposit) => [deposit.id, ""])),
       );
       setDepositReferences({});
+      setDepositDamageAmounts({});
+      setDepositDamageReasons({});
+      setCheckoutPaymentNow(false);
+      setCheckoutPaymentMethodId("");
       try {
         const [context, paymentMethods] = await Promise.all([
           getCheckOutContext(detail.reservation.checkOutDate),
@@ -357,6 +388,7 @@ export function ReservationDetailActions({
         ]);
         setCheckOutContext(context);
         setMethods(paymentMethods);
+        setCheckoutPaymentMethodId(paymentMethods[0]?.id ?? "");
       } catch (cause) {
         setError(
           cause instanceof Error
@@ -428,6 +460,14 @@ export function ReservationDetailActions({
         setError(t("detailActions.errors.checkoutRulesNotLoaded"));
         return;
       }
+      if (!checkoutDepositPlan.valid) {
+        setError(t("detailActions.errors.depositSettlementRequired"));
+        return;
+      }
+      if (checkoutPaymentNow && (!canRecordPayment || checkoutPaymentMethodMissing)) {
+        setError(t("detailActions.errors.checkoutPaymentMethodRequired"));
+        return;
+      }
       if (
         checkOutContext.kind === "early_departure" &&
         !earlyDepartureAcknowledged
@@ -451,7 +491,7 @@ export function ReservationDetailActions({
         setError(t("detailActions.errors.lateCheckoutMethodRequired"));
         return;
       }
-      const willRemainOutstanding = checkoutRemainingAfterDeductions > 0;
+      const willRemainOutstanding = checkoutRemainingAfterSettlement > 0;
       if (outstandingCheckOutBlocked) {
         setError(t("detailActions.errors.outstandingCheckOutDisabled"));
         return;
@@ -462,16 +502,6 @@ export function ReservationDetailActions({
       }
       if (willRemainOutstanding && (!acknowledged || !reason.trim())) {
         setError(t("detailActions.errors.checkoutReasonRequired"));
-        return;
-      }
-      if (
-        activeDeposits.some(
-          (deposit) =>
-            depositModes[deposit.id] === "refund" &&
-            !depositReferences[deposit.id]?.trim(),
-        )
-      ) {
-        setError(t("detailActions.errors.refundReferenceRequired"));
         return;
       }
     }
@@ -536,50 +566,25 @@ export function ReservationDetailActions({
         });
       }
       if (action === "check_out") {
-        let balanceAfterDeductions = checkoutProjectedBalance;
         await checkOutReservation(id, {
-          acknowledgeOutstanding: checkoutRemainingAfterDeductions > 0,
+          acknowledgeOutstanding: checkoutRemainingAfterSettlement > 0,
           outstandingReason:
-            checkoutRemainingAfterDeductions > 0 ? reason.trim() : undefined,
+            checkoutRemainingAfterSettlement > 0 ? reason.trim() : undefined,
           ...(checkOutContext?.kind === "early_departure"
             ? { acknowledgeEarlyDeparture: earlyDepartureAcknowledged }
             : {}),
           ...(checkOutContext?.kind === "late_checkout"
             ? { lateCheckOut }
             : {}),
-          deposits: activeDeposits.map((deposit) => {
-            const mode = depositModes[deposit.id] ?? "defer";
-            const amount =
-              deposit.amountHeld -
-              deposit.amountRefunded -
-              deposit.amountDeducted;
-            const balanceDeduction =
-              mode === "deduct_balance"
-                ? Math.min(amount, balanceAfterDeductions)
-                : 0;
-            balanceAfterDeductions -= balanceDeduction;
-            return mode === "refund"
-              ? {
-                  depositId: deposit.id,
-                  refundAmount: amount,
-                  refundReference: depositReferences[deposit.id].trim(),
-                  reason: "Deposit dikembalikan saat checkout",
-                }
-              : mode === "deduct_balance" || mode === "deduct_damage"
-                ? {
-                    depositId: deposit.id,
-                    deductionAmount:
-                      mode === "deduct_balance" ? balanceDeduction : amount,
-                    deductionPurpose:
-                      mode === "deduct_balance"
-                        ? ("balance" as const)
-                        : ("damage" as const),
-                    deferRemaining:
-                      mode === "deduct_balance" && amount > balanceDeduction,
-                    reason: reason.trim() || "Potongan deposit saat checkout",
-                  }
-                : { depositId: deposit.id, deferRemaining: true };
-          }),
+          deposits: checkoutDepositPlan.decisions,
+          ...(checkoutPaymentNow && checkoutRemainingAfterDeductions > 0
+            ? {
+                settlementPayment: {
+                  methodId: checkoutPaymentMethodId,
+                  amount: checkoutRemainingAfterDeductions,
+                },
+              }
+            : {}),
         });
       }
       if (action === "cancel") await cancelReservation(id, reason);
@@ -632,8 +637,10 @@ export function ReservationDetailActions({
         {presentation.actions
           .filter(
             (item) =>
-              (item !== "no_show" || detail.reservation.checkInDate === todayISO) &&
-              (item !== "check_in" || detail.reservation.checkInDate <= todayISO),
+              (item !== "no_show" ||
+                detail.reservation.checkInDate === todayISO) &&
+              (item !== "check_in" ||
+                detail.reservation.checkInDate <= todayISO),
           )
           .filter((item) => userPermissions.includes(actionPermissions[item]))
           .map((item) => {
@@ -1008,8 +1015,7 @@ export function ReservationDetailActions({
                             <span>*</span>
                             <select
                               aria-invalid={
-                                validationAttempted &&
-                                !roomSelections[room.id]
+                                validationAttempted && !roomSelections[room.id]
                               }
                               value={roomSelections[room.id] ?? ""}
                               onChange={(event) =>
@@ -1171,24 +1177,25 @@ export function ReservationDetailActions({
                           <label>
                             {t("detailActions.modal.depositHandling")}
                             <select
-                              value={depositModes[deposit.id] ?? "defer"}
+                              value={depositModes[deposit.id] ?? ""}
                               onChange={(event) =>
                                 setDepositModes((current) => ({
                                   ...current,
-                                  [deposit.id]: event.target
-                                    .value as DepositMode,
+                                  [deposit.id]: event.target.value as
+                                    CheckoutDepositMode | "",
                                 }))
                               }
                             >
-                              <option value="defer">
-                                {t("detailActions.modal.depositDefer")}
+                              <option value="">
+                                {t("detailActions.modal.depositChoose")}
                               </option>
                               {canRefund && (
                                 <option value="refund">
                                   {t("detailActions.modal.depositRefundFull")}
                                 </option>
                               )}
-                              {checkoutProjectedBalance > 0 && (
+                              {(checkoutProjectedBalance > 0 ||
+                                hasDamageBalance) && (
                                 <option value="deduct_balance">
                                   {t(
                                     "detailActions.modal.depositDeductBalance",
@@ -1200,7 +1207,41 @@ export function ReservationDetailActions({
                               </option>
                             </select>
                           </label>
-                          {depositModes[deposit.id] === "refund" && (
+                          {depositModes[deposit.id] === "deduct_damage" && (
+                            <>
+                              <label>
+                                {t("detailActions.modal.damageAmount")}
+                                <input
+                                  type="number"
+                                  min="1"
+                                  step="1"
+                                  value={depositDamageAmounts[deposit.id] ?? ""}
+                                  onChange={(event) =>
+                                    setDepositDamageAmounts((current) => ({
+                                      ...current,
+                                      [deposit.id]: event.target.value,
+                                    }))
+                                  }
+                                />
+                              </label>
+                              <label>
+                                {t("detailActions.modal.damageReason")}
+                                <textarea
+                                  value={depositDamageReasons[deposit.id] ?? ""}
+                                  onChange={(event) =>
+                                    setDepositDamageReasons((current) => ({
+                                      ...current,
+                                      [deposit.id]: event.target.value,
+                                    }))
+                                  }
+                                  rows={2}
+                                />
+                              </label>
+                            </>
+                          )}
+                          {(depositModes[deposit.id] === "refund" ||
+                            (checkoutDepositPlan.details[deposit.id]?.refund ??
+                              0) > 0) && (
                             <label>
                               {t("detailActions.modal.refundReference")}
                               <input
@@ -1214,44 +1255,124 @@ export function ReservationDetailActions({
                               />
                             </label>
                           )}
+                          {depositModes[deposit.id] && (
+                            <p className="api-reservation-deposit-summary">
+                              {t("detailActions.modal.depositApplied", {
+                                amount: rupiah(
+                                  checkoutDepositPlan.details[deposit.id]
+                                    ?.applied ?? 0,
+                                ),
+                              })}
+                              {" · "}
+                              {t("detailActions.modal.depositRefunded", {
+                                amount: rupiah(
+                                  checkoutDepositPlan.details[deposit.id]
+                                    ?.refund ?? 0,
+                                ),
+                              })}
+                              {(checkoutDepositPlan.details[deposit.id]
+                                ?.damageOutstanding ?? 0) > 0 && (
+                                <>
+                                  {" · "}
+                                  {t("detailActions.modal.damageOutstanding", {
+                                    amount: rupiah(
+                                      checkoutDepositPlan.details[deposit.id]
+                                        ?.damageOutstanding ?? 0,
+                                    ),
+                                  })}
+                                </>
+                              )}
+                            </p>
+                          )}
+                          {!canRefund &&
+                            (checkoutDepositPlan.details[deposit.id]?.refund ??
+                              0) > 0 && (
+                              <p className="reservation-operation-error">
+                                {t(
+                                  "detailActions.errors.depositRefundPermission",
+                                )}
+                              </p>
+                            )}
                         </div>
                       );
                     })}
+                    {activeDeposits.length > 0 &&
+                      !checkoutDepositPlan.valid && (
+                        <p className="reservation-operation-error">
+                          {t("detailActions.errors.depositSettlementRequired")}
+                        </p>
+                      )}
                     {checkoutRemainingAfterDeductions > 0 && (
                       <>
-                        {outstandingCheckOutBlocked && (
-                          <p className="reservation-operation-error">
-                            {t("detailActions.errors.outstandingCheckOutDisabled")}
-                          </p>
-                        )}
                         <p>
                           {t("detailActions.modal.remainingAfterCheckout", {
                             amount: rupiah(checkoutRemainingAfterDeductions),
                           })}
                         </p>
-                        <label>
-                          {t("detailActions.modal.outstandingReasonLabel")}
-                          <textarea
-                            value={reason}
-                            onChange={(event) => setReason(event.target.value)}
-                            rows={3}
-                          />
-                        </label>
-                        <label className="api-reservation-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={acknowledged}
-                            onChange={(event) =>
-                              setAcknowledged(event.target.checked)
-                            }
-                          />{" "}
-                          {t("detailActions.modal.outstandingAcknowledge")}
-                        </label>
+                        {canRecordPayment && (
+                          <label className="api-reservation-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={checkoutPaymentNow}
+                              onChange={(event) =>
+                                setCheckoutPaymentNow(event.target.checked)
+                              }
+                            />{" "}
+                            {t("detailActions.modal.checkoutPayNow")}
+                          </label>
+                        )}
+                        {checkoutPaymentNow ? (
+                          <label>
+                            {t("detailActions.modal.checkoutPaymentMethod")}
+                            <select
+                              value={checkoutPaymentMethodId}
+                              onChange={(event) =>
+                                setCheckoutPaymentMethodId(event.target.value)
+                              }
+                            >
+                              <option value="">
+                                {t("detailActions.modal.checkoutPaymentChoose")}
+                              </option>
+                              {methods.map((method) => (
+                                <option key={method.id} value={method.id}>
+                                  {method.name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        ) : (
+                          <>
+                            {outstandingCheckOutBlocked && (
+                              <p className="reservation-operation-error">
+                                {t(
+                                  "detailActions.errors.outstandingCheckOutDisabled",
+                                )}
+                              </p>
+                            )}
+                            <label>
+                              {t("detailActions.modal.outstandingReasonLabel")}
+                              <textarea
+                                value={reason}
+                                onChange={(event) => setReason(event.target.value)}
+                                rows={3}
+                              />
+                            </label>
+                            <label className="api-reservation-checkbox">
+                              <input
+                                type="checkbox"
+                                checked={acknowledged}
+                                onChange={(event) =>
+                                  setAcknowledged(event.target.checked)
+                                }
+                              />{" "}
+                              {t("detailActions.modal.outstandingAcknowledge")}
+                            </label>
+                          </>
+                        )}
                       </>
                     )}
                   </>
                 )}
-
                 {(action === "cancel" || action === "no_show") && (
                   <label>
                     {t(
@@ -1266,7 +1387,6 @@ export function ReservationDetailActions({
                     />
                   </label>
                 )}
-
               </div>
               <div
                 className={

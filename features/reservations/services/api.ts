@@ -407,10 +407,12 @@ export function checkOutReservation(
     outstandingReason?: string;
     acknowledgeEarlyDeparture?: boolean;
     lateCheckOut?: LateCheckOutInput;
+    settlementPayment?: { methodId: string; amount: number };
     deposits: {
       depositId: string;
       refundAmount?: number;
       deductionAmount?: number;
+      damageAmount?: number;
       deductionPurpose?: "balance" | "damage";
       deferRemaining?: boolean;
       reason?: string;

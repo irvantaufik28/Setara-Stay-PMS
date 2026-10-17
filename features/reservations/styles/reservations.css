@@ -2346,6 +2346,12 @@ select[aria-invalid="true"]:focus {
   border: 1px solid var(--border);
   border-radius: 6px;
 }
+.api-reservation-deposit-summary {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
 .api-reservation-error {
   padding: 10px;
   border-radius: 5px;

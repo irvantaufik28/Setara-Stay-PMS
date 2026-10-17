@@ -1,0 +1,327 @@
+.financial-control {
+  width: 100%;
+  color: var(--text-primary);
+}
+.financial-control-heading,
+.financial-control-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+.financial-control-heading h1 {
+  margin: 0;
+  font-size: 26px;
+}
+.financial-control-heading p {
+  margin: 6px 0 0;
+}
+.financial-control-heading > span,
+.financial-control-section-heading > span {
+  color: #515a54;
+  font-size: 13px;
+}
+.financial-control-note {
+  margin: 18px 0;
+  padding: 12px 16px;
+  border-left: 3px solid var(--primary);
+  background: #f2f8f3;
+  color: #2a4338;
+  line-height: 1.5;
+}
+.financial-control-filters {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+.financial-control-filter-hint {
+  margin: -12px 0 18px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.financial-control-filters label {
+  display: grid;
+  gap: 6px;
+  min-width: 200px;
+  font-weight: 600;
+}
+.financial-control-filters input,
+.financial-control-filters select,
+.financial-control-filters button,
+.financial-control-pagination button {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid #6b726e;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-primary);
+  font: inherit;
+}
+.financial-control-filters input {
+  min-width: min(300px, 100%);
+}
+.financial-control-filters button,
+.financial-control-pagination button {
+  cursor: pointer;
+  font-weight: 600;
+}
+.financial-control :is(button, input, select, a):focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+.financial-control button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.financial-control-total,
+.financial-control-metrics > div,
+.financial-control-buckets button {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  text-align: left;
+}
+.financial-control-total {
+  margin-bottom: 12px;
+  border-color: #6b726e;
+  background: #f2f8f3;
+}
+.financial-control-total strong,
+.financial-control-metrics strong,
+.financial-control-buckets strong {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.financial-control-total small,
+.financial-control-metrics small,
+.financial-control-buckets small {
+  color: #515a54;
+}
+.financial-control-buckets,
+.financial-control-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 12px;
+}
+.financial-control-buckets button {
+  cursor: pointer;
+  font: inherit;
+}
+.financial-control-buckets button[aria-pressed="true"] {
+  border: 2px solid var(--primary);
+  padding: 17px;
+  background: #f2f8f3;
+}
+.financial-control-section {
+  margin-top: 26px;
+}
+.financial-control-section h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.financial-control-state,
+.financial-control-warning {
+  margin: 12px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+}
+.financial-control-error {
+  border-color: #a72727;
+  background: #fff5f4;
+  color: #8c1d1d;
+}
+.financial-control-warning {
+  border-color: #a66a00;
+  background: #fff4e5;
+  color: #6a4200;
+}
+.financial-control-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+}
+.financial-control-table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.financial-control-table-scroll th,
+.financial-control-table-scroll td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.financial-control-table-scroll thead th {
+  background: #f5f6f3;
+  color: #515a54;
+  font-size: 12px;
+}
+.financial-control-table-scroll tbody th {
+  font-weight: 600;
+}
+.financial-control-table-scroll tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+.financial-control-movement-table td:last-child {
+  min-width: 180px;
+  max-width: 320px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.financial-control-table-scroll a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.financial-control-table-scroll a.financial-control-detail-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.financial-control-table-scroll a.financial-control-detail-link:hover {
+  background: #f2f8f3;
+}
+.financial-control-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.financial-control--ar-aging .financial-control-heading {
+  align-items: flex-start;
+  gap: 16px;
+}
+.financial-control--ar-aging .financial-control-heading h1 {
+  font-size: 25px;
+  font-weight: 650;
+}
+.financial-control--ar-aging .financial-control-heading p {
+  margin-top: 5px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.financial-control--ar-aging .financial-control-heading > span {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.financial-control--ar-aging .financial-control-note {
+  margin: 12px 0 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.financial-control--ar-aging .financial-control-filters {
+  align-items: end;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+}
+.financial-control--ar-aging .financial-control-filters label {
+  gap: 5px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+.financial-control--ar-aging
+  .financial-control-filters
+  :is(input, select, button) {
+  min-height: 36px;
+  border-color: #d1cfc7;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.financial-control--ar-aging .financial-control-filters button:hover {
+  background: var(--background);
+}
+.financial-control--ar-aging .financial-control-total,
+.financial-control--ar-aging .financial-control-buckets button {
+  gap: 8px;
+  padding: 16px;
+  border-radius: 8px;
+}
+.financial-control--ar-aging .financial-control-total {
+  border-color: #c7dccd;
+}
+.financial-control--ar-aging
+  .financial-control-buckets
+  button[aria-pressed="true"] {
+  padding: 15px;
+}
+.financial-control--ar-aging .financial-control-total span,
+.financial-control--ar-aging .financial-control-buckets span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+.financial-control--ar-aging .financial-control-total strong,
+.financial-control--ar-aging .financial-control-buckets strong {
+  font-size: 20px;
+  font-weight: 650;
+}
+.financial-control--ar-aging .financial-control-total small,
+.financial-control--ar-aging .financial-control-buckets small {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.financial-control--ar-aging .financial-control-section h2 {
+  font-size: 15px;
+  font-weight: 650;
+}
+.financial-control--ar-aging .financial-control-section-heading > span {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.financial-control--ar-aging .financial-control-table-scroll {
+  border-radius: 8px;
+}
+.financial-control--ar-aging .financial-control-table-scroll thead th {
+  background: #fbfbfa;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 650;
+}
+.financial-control--ar-aging .financial-control-table-scroll tbody :is(th, td) {
+  border-bottom-color: #f0efea;
+  font-size: 12px;
+}
+.financial-control--ar-aging .financial-control-table-scroll tbody tr:hover {
+  background: var(--background);
+}
+@media (max-width: 560px) {
+  .financial-control-filters label,
+  .financial-control-filters input,
+  .financial-control-filters select {
+    width: 100%;
+  }
+  .financial-control-pagination {
+    justify-content: space-between;
+  }
+}
