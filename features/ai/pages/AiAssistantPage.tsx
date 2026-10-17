@@ -9,6 +9,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { AdminShell } from "../../../components/layout/AdminShell";
+import Image from "next/image";
 import { Icon } from "../../../components/ui/Icon";
 import {
   AiMessageContent,
@@ -460,6 +461,13 @@ export function AiAssistantPage() {
                 </p>
               ) : entries.length === 0 && !pendingQuestion ? (
                 <div className="ai-conversation__empty">
+                  <Image
+                    className="ai-conversation__avatar"
+                    src="/tara-assistant.png"
+                    alt=""
+                    width={96}
+                    height={96}
+                  />
                   <h2>{t("emptyTitle")}</h2>
                   <p>{t("emptyDescription")}</p>
                 </div>

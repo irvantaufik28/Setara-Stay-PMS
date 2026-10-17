@@ -7,14 +7,16 @@
 
 .ai-widget__launcher {
   display: grid;
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   place-items: center;
-  border: 1px solid var(--primary);
+  padding: 0;
+  border: 0;
   border-radius: 50%;
   background: var(--primary);
-  box-shadow: 0 8px 24px rgb(16 46 37 / 22%);
+  box-shadow: 0 8px 24px rgb(7 27 52 / 22%);
   color: #fff;
+  cursor: pointer;
 }
 
 .ai-widget__launcher:hover {
@@ -43,11 +45,36 @@
   border-bottom: 1px solid var(--border);
 }
 
+.ai-widget__identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+
+.ai-widget__avatar {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.ai-widget__identity > div {
+  min-width: 0;
+}
+
 .ai-widget__header h2 {
   margin: 0;
   color: var(--text-primary);
   font-size: 16px;
   line-height: 1.35;
+}
+
+.ai-widget__subtitle {
+  display: block;
+  color: #4d5751;
+  font-size: 11px;
+  line-height: 1.25;
 }
 
 .ai-widget__header p {

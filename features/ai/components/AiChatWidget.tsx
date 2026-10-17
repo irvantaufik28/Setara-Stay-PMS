@@ -9,6 +9,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Icon } from "../../../components/ui/Icon";
 import { AiMessageContent, hasAiMarkdownTable } from "./AiMessageContent";
@@ -202,9 +203,19 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
           aria-labelledby="ai-widget-title"
         >
           <header className="ai-widget__header">
-            <div>
-              <h2 id="ai-widget-title">{t("title")}</h2>
-              <p>{t("widget.description")}</p>
+            <div className="ai-widget__identity">
+              <Image
+                className="ai-widget__avatar"
+                src="/tara-assistant.png"
+                alt=""
+                width={48}
+                height={48}
+              />
+              <div>
+                <h2 id="ai-widget-title">{t("title")}</h2>
+                <span className="ai-widget__subtitle">{t("widget.subtitle")}</span>
+                <p>{t("widget.description")}</p>
+              </div>
             </div>
             <div className="ai-widget__header-actions">
               <button
@@ -341,7 +352,7 @@ export function AiChatWidget({ suspended = false }: { suspended?: boolean }) {
           title={t("widget.open")}
           onClick={() => setOpen(true)}
         >
-          <Icon name="aiAssistant" width={25} height={25} />
+          <Icon name="aiAssistant" width={31} height={31} />
         </button>
       )}
     </div>

@@ -208,6 +208,11 @@
   text-align: center;
 }
 
+.ai-conversation__avatar {
+  margin-bottom: 16px;
+  object-fit: contain;
+}
+
 .ai-conversation__empty h2 {
   margin: 0 0 8px;
   font-size: 19px;

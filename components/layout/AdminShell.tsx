@@ -130,7 +130,7 @@ export function AdminShell({ title, context, badge, children }: Props) {
         onSignOut={signOut}
       />
       <main className="admin-main">{children}</main>
-      <AiChatWidget suspended={mobileOpen || demoNoticeOpen} />
+      <AiChatWidget suspended={mobileOpen} />
       {notice && (
         <div className="admin-notice" role="status">
           {notice}
@@ -153,12 +153,11 @@ export function AdminShell({ title, context, badge, children }: Props) {
             aria-describedby="demo-notice-description"
           >
             <span className="demo-notice-eyebrow">SETARA STAY DEMO</span>
-            <h2 id="demo-notice-title">Selamat datang di versi demo</h2>
+            <h2 id="demo-notice-title">Selamat datang di demo Setara Stay</h2>
             <p id="demo-notice-description">
-              Sistem ini dibuat untuk memperlihatkan alur kerja admin hotel.
-              Data reservasi, tamu, kamar, dan pembayaran yang tampil adalah
-              data contoh. Perubahan tertentu hanya tersimpan selama sesi
-              browser dan belum memproses transaksi nyata.
+              Jelajahi alur kerja PMS dengan data dari API dan database yang
+              terhubung. Perubahan yang Anda lakukan dapat tersimpan di
+              lingkungan demo ini.
             </p>
             <button
               type="button"
