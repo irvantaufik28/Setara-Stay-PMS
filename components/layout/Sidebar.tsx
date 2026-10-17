@@ -46,6 +46,7 @@ const items: Item[] = [
     children: ["All Transactions", "Refunds", "Outstanding Balance"],
   },
   { label: "Guests", icon: "guests" },
+  { label: "Night Audit", icon: "reports" },
   {
     label: "Master",
     icon: "rooms",
@@ -119,6 +120,7 @@ const topLevelRoutes: Record<string, string> = {
   "Campaigns & Promotions": "/campaigns",
   Experiences: "/experiences",
   Guests: "/guests",
+  "Night Audit": "/night-audit",
   "Favorite Rooms": "/web-settings/favorite-rooms",
   "Hotel Info": "/web-settings/hotel-info",
   Gallery: "/web-settings/gallery",
@@ -308,6 +310,7 @@ export function Sidebar({
                   // Items with a dedicated top-level route (Dashboard, Campaigns & Promotions, etc.)
                   <Link
                     href={topLevelRoutes[item.label]}
+                    prefetch={item.label === "Night Audit" ? false : undefined}
                     className={
                       pathname === topLevelRoutes[item.label]
                         ? "sidebar-link sidebar-link--active"
