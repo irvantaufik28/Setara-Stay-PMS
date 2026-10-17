@@ -71,6 +71,7 @@ export type DepositMovements = {
     deducted: number;
     damageAmount: number;
     deductionPurpose: "balance" | "damage" | null;
+    source: "post_checkout" | null;
     reason: string | null;
     reference: string | null;
   }[];
@@ -99,4 +100,21 @@ export const getDepositMovements = (
   apiRequest<DepositMovements>(
     `reports/deposit-reconciliation/movements?${query}`,
     { signal },
+  );
+
+export const settleCheckedOutDeposit = (
+  reservationId: string,
+  depositId: string,
+  input: {
+    action: "refund" | "damage";
+    expectedBalance: number;
+    damageAmount?: number;
+    reason: string;
+    refundReference?: string;
+    refundCompleted?: boolean;
+  },
+) =>
+  apiRequest(
+    `reservations/${encodeURIComponent(reservationId)}/deposits/${encodeURIComponent(depositId)}/settle`,
+    { method: "POST", body: input },
   );

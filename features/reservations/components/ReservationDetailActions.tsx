@@ -464,7 +464,10 @@ export function ReservationDetailActions({
         setError(t("detailActions.errors.depositSettlementRequired"));
         return;
       }
-      if (checkoutPaymentNow && (!canRecordPayment || checkoutPaymentMethodMissing)) {
+      if (
+        checkoutPaymentNow &&
+        (!canRecordPayment || checkoutPaymentMethodMissing)
+      ) {
         setError(t("detailActions.errors.checkoutPaymentMethodRequired"));
         return;
       }
@@ -1305,7 +1308,7 @@ export function ReservationDetailActions({
                     {checkoutRemainingAfterDeductions > 0 && (
                       <>
                         <p>
-                          {t("detailActions.modal.remainingAfterCheckout", {
+                          {t("detailActions.modal.remainingBeforePayment", {
                             amount: rupiah(checkoutRemainingAfterDeductions),
                           })}
                         </p>
@@ -1322,24 +1325,31 @@ export function ReservationDetailActions({
                           </label>
                         )}
                         {checkoutPaymentNow ? (
-                          <label>
-                            {t("detailActions.modal.checkoutPaymentMethod")}
-                            <select
-                              value={checkoutPaymentMethodId}
-                              onChange={(event) =>
-                                setCheckoutPaymentMethodId(event.target.value)
-                              }
-                            >
-                              <option value="">
-                                {t("detailActions.modal.checkoutPaymentChoose")}
-                              </option>
-                              {methods.map((method) => (
-                                <option key={method.id} value={method.id}>
-                                  {method.name}
+                          <>
+                            <label>
+                              {t("detailActions.modal.checkoutPaymentMethod")}
+                              <select
+                                value={checkoutPaymentMethodId}
+                                onChange={(event) =>
+                                  setCheckoutPaymentMethodId(event.target.value)
+                                }
+                              >
+                                <option value="">
+                                  {t(
+                                    "detailActions.modal.checkoutPaymentChoose",
+                                  )}
                                 </option>
-                              ))}
-                            </select>
-                          </label>
+                                {methods.map((method) => (
+                                  <option key={method.id} value={method.id}>
+                                    {method.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <p>
+                              {t("detailActions.modal.remainingAfterPayment")}
+                            </p>
+                          </>
                         ) : (
                           <>
                             {outstandingCheckOutBlocked && (
@@ -1353,7 +1363,9 @@ export function ReservationDetailActions({
                               {t("detailActions.modal.outstandingReasonLabel")}
                               <textarea
                                 value={reason}
-                                onChange={(event) => setReason(event.target.value)}
+                                onChange={(event) =>
+                                  setReason(event.target.value)
+                                }
                                 rows={3}
                               />
                             </label>

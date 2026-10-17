@@ -411,19 +411,6 @@
   }
 }
 @media (max-width: 540px) {
-  .auth-shell {
-    padding: 20px 16px;
-  }
-  .auth-shell__header {
-    display: flex;
-    justify-content: center;
-  }
-  .auth-shell__main {
-    padding: 28px 0;
-  }
-  .login-card {
-    padding: 28px 24px;
-  }
   .dashboard-title-row {
     align-items: flex-start;
     flex-direction: column;

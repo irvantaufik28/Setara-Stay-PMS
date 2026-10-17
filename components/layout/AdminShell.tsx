@@ -114,6 +114,7 @@ export function AdminShell({ title, context, badge, children }: Props) {
   return (
     <div className={pinned ? "admin-shell admin-shell--pinned" : "admin-shell"}>
       <Sidebar
+        user={user}
         pinned={pinned}
         onTogglePin={togglePin}
         mobileOpen={mobileOpen}

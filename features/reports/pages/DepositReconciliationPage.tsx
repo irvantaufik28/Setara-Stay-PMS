@@ -4,7 +4,8 @@ import "../styles/financial-control.css";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminShell } from "../../../components/layout/AdminShell";
-import { restoreSession } from "../../../lib/auth";
+import { getCurrentUser, restoreSession } from "../../../lib/auth";
+import { DepositSettlementForm } from "../components/DepositSettlementForm";
 import {
   getDepositMovements,
   getDepositReconciliation,
@@ -29,6 +30,9 @@ const movementName: Record<string, string> = {
 export function DepositReconciliationPage() {
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"open" | "all">("open");
+  const [reservationStatus, setReservationStatus] = useState<
+    "all" | "checked_out"
+  >("checked_out");
   const [ledgerStatus, setLedgerStatus] = useState<
     "all" | "matched" | "review"
   >("all");
@@ -38,6 +42,11 @@ export function DepositReconciliationPage() {
   const [movements, setMovements] = useState<DepositMovements | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedDepositId, setSelectedDepositId] = useState<string | null>(
+    null,
+  );
+  const [settlementNotice, setSettlementNotice] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -52,6 +61,7 @@ export function DepositReconciliationPage() {
             );
           const query = new URLSearchParams({
             view,
+            reservationStatus,
             ledgerStatus,
             page: String(page),
             limit: String(limit),
@@ -92,7 +102,22 @@ export function DepositReconciliationPage() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [search, view, ledgerStatus, page, movementPage]);
+  }, [
+    search,
+    view,
+    reservationStatus,
+    ledgerStatus,
+    page,
+    movementPage,
+    refreshKey,
+  ]);
+
+  const user = getCurrentUser();
+  const canSettle = user?.permissions.includes("payments.refund") ?? false;
+  const canDamage = user?.roleName === "Owner" || user?.roleName === "Manager";
+  const selectedDeposit = report?.items.find(
+    (item) => item.id === selectedDepositId,
+  );
 
   return (
     <AdminShell
@@ -159,11 +184,28 @@ export function DepositReconciliationPage() {
               <option value="review">Perlu ditinjau</option>
             </select>
           </label>
+          <label>
+            Status reservasi
+            <select
+              value={reservationStatus}
+              onChange={(event) => {
+                setReservationStatus(
+                  event.target.value as "all" | "checked_out",
+                );
+                setSelectedDepositId(null);
+                setPage(1);
+              }}
+            >
+              <option value="checked_out">Sudah checkout</option>
+              <option value="all">Semua status</option>
+            </select>
+          </label>
           <button
             type="button"
             onClick={() => {
               setSearch("");
               setView("open");
+              setReservationStatus("checked_out");
               setLedgerStatus("all");
               setPage(1);
               setMovementPage(1);
@@ -173,8 +215,9 @@ export function DepositReconciliationPage() {
           </button>
         </div>
         <p className="financial-control-filter-hint">
-          Filter saldo dan status jejak berlaku untuk tabel saldo per deposit.
-          Ringkasan dan mutasi tetap mengikuti pencarian reservasi atau tamu.
+          Filter saldo, status reservasi, dan status jejak berlaku untuk tabel
+          saldo per deposit. Ringkasan dan mutasi tetap mengikuti pencarian
+          reservasi atau tamu.
         </p>
         {loading && (
           <p className="financial-control-state" role="status">
@@ -187,6 +230,11 @@ export function DepositReconciliationPage() {
             role="alert"
           >
             {error} Coba lagi atau periksa sesi Anda.
+          </p>
+        )}
+        {settlementNotice && (
+          <p className="financial-control-state" role="status">
+            {settlementNotice}
           </p>
         )}
         {!loading && report && movements && (
@@ -251,8 +299,10 @@ export function DepositReconciliationPage() {
                         <th scope="col">Dikembalikan</th>
                         <th scope="col">Digunakan</th>
                         <th scope="col">Saldo</th>
+                        <th scope="col">Status reservasi</th>
                         <th scope="col">Jejak</th>
                         <th scope="col">Detail</th>
+                        <th scope="col">Tindakan</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -269,6 +319,11 @@ export function DepositReconciliationPage() {
                           <td>{money(item.refunded)}</td>
                           <td>{money(item.deducted)}</td>
                           <td>{money(item.balance)}</td>
+                          <td>
+                            {item.reservationStatus === "checked_out"
+                              ? "Sudah checkout"
+                              : item.reservationStatus}
+                          </td>
                           <td>{item.ledgerMatched ? "Sesuai" : "Tinjau"}</td>
                           <td>
                             <Link
@@ -278,6 +333,23 @@ export function DepositReconciliationPage() {
                             >
                               Lihat Detail
                             </Link>
+                          </td>
+                          <td>
+                            {item.reservationStatus === "checked_out" &&
+                              item.balance > 0 &&
+                              canSettle && (
+                                <button
+                                  type="button"
+                                  className="financial-control-detail-link"
+                                  aria-haspopup="dialog"
+                                  onClick={() => {
+                                    setSelectedDepositId(item.id);
+                                    setSettlementNotice("");
+                                  }}
+                                >
+                                  Selesaikan
+                                </button>
+                              )}
                           </td>
                         </tr>
                       ))}
@@ -290,6 +362,21 @@ export function DepositReconciliationPage() {
                     ? "Tidak ada deposit yang perlu ditinjau untuk pencarian ini."
                     : "Tidak ada deposit untuk filter ini. Pilih ‘Semua deposit’ atau ubah pencarian."}
                 </p>
+              )}
+              {selectedDeposit && (
+                <DepositSettlementForm
+                  key={`${selectedDeposit.id}-${selectedDeposit.balance}`}
+                  deposit={selectedDeposit}
+                  canDamage={canDamage}
+                  onCancel={() => setSelectedDepositId(null)}
+                  onSettled={() => {
+                    setSelectedDepositId(null);
+                    setSettlementNotice(
+                      `Deposit ${selectedDeposit.bookingCode} berhasil diselesaikan.`,
+                    );
+                    setRefreshKey((current) => current + 1);
+                  }}
+                />
               )}
               {report.total > limit && (
                 <div className="financial-control-pagination">
@@ -348,7 +435,10 @@ export function DepositReconciliationPage() {
                             </Link>
                           </th>
                           <td>
-                            {movementName[item.eventType] ?? item.eventType}
+                            {item.source === "post_checkout"
+                              ? "Diselesaikan setelah checkout"
+                              : (movementName[item.eventType] ??
+                                item.eventType)}
                           </td>
                           <td>{item.held ? money(item.held) : "—"}</td>
                           <td>{item.refunded ? money(item.refunded) : "—"}</td>

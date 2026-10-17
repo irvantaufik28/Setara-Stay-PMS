@@ -68,7 +68,7 @@
   cursor: pointer;
   font-weight: 600;
 }
-.financial-control :is(button, input, select, a):focus-visible {
+.financial-control :is(button, input, select, textarea, a):focus-visible {
   outline: 3px solid var(--primary);
   outline-offset: 2px;
 }
@@ -198,6 +198,143 @@
   background: #fff;
   font-weight: 600;
   text-decoration: none;
+}
+.financial-control-table-scroll button.financial-control-detail-link {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.financial-control-table-scroll button.financial-control-detail-link:hover {
+  background: #f2f8f3;
+}
+.deposit-settlement-backdrop {
+  position: fixed;
+  z-index: 110;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #1b261f99;
+}
+.deposit-settlement-dialog {
+  width: min(100%, 680px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 20px 60px #071b3440;
+  color: var(--text-primary);
+}
+.deposit-settlement-dialog :is(button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+.deposit-settlement-dialog button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.deposit-settlement-form {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+}
+.deposit-settlement-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.deposit-settlement-header h2 {
+  margin: 0 0 4px;
+  font-size: 19px;
+}
+.deposit-settlement-header > button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #6b726e;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-primary);
+  font-size: 24px;
+  line-height: 1;
+}
+.deposit-settlement-form p {
+  margin: 0;
+  line-height: 1.5;
+}
+.deposit-settlement-form > label:not(.deposit-settlement-confirm) {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+.deposit-settlement-form :is(input:not([type="checkbox"]), select, textarea) {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #6b726e;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-primary);
+  font: inherit;
+}
+.deposit-settlement-form textarea {
+  resize: vertical;
+}
+.deposit-settlement-confirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.deposit-settlement-confirm input {
+  accent-color: var(--primary);
+}
+.deposit-settlement-note {
+  color: #6a4200;
+}
+.deposit-settlement-preview {
+  font-weight: 600;
+}
+.deposit-settlement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.deposit-settlement-actions button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.deposit-settlement-actions button[type="submit"] {
+  background: var(--primary);
+  color: #fff;
+}
+@media (max-width: 600px) {
+  .deposit-settlement-backdrop {
+    padding: 10px;
+  }
+  .deposit-settlement-dialog {
+    max-height: calc(100dvh - 20px);
+  }
+  .deposit-settlement-form {
+    padding: 18px;
+  }
+  .deposit-settlement-actions button {
+    flex: 1 1 140px;
+  }
 }
 .financial-control-table-scroll a.financial-control-detail-link:hover {
   background: #f2f8f3;

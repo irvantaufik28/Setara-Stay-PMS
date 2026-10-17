@@ -5,11 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandMark } from "../ui/BrandMark";
 import { Icon, type IconName } from "../ui/Icon";
+import type { AuthUser } from "../../lib/auth";
 import { useTranslations } from "../../lib/i18n";
 import en from "./locales/en.json";
 import id from "./locales/id.json";
 
 type Props = {
+  user: AuthUser | null;
   pinned: boolean;
   onTogglePin: () => void;
   mobileOpen: boolean;
@@ -86,6 +88,62 @@ const websiteItems: Item[] = [
   { label: "Favorite Rooms", icon: "rooms" },
   { label: "Gallery", icon: "reports" },
 ];
+const menuPermissions: Record<string, string | null> = {
+  Dashboard: "dashboard.view",
+  "AI Assistant": null,
+  "Reservation Calendar": "reservations.view",
+  "New Reservation": "reservations.create",
+  "Phone Reservation": "reservations.create",
+  "OTA Reservation": "reservations.create",
+  "All Reservations": "reservations.view",
+  "Arrivals Today": "reservations.view_arrivals_today",
+  "Departures Today": "reservations.view_departures_today",
+  "In House": "reservations.view_in_house",
+  "Room Types": "rooms.view_types",
+  "Room Numbers": "rooms.view_numbers",
+  "Prices & Stocks": "prices_stocks.view",
+  "Cancellation Policies": "cancellation_policies.view",
+  "Campaigns & Promotions": "campaigns.view",
+  Experiences: "experiences.view",
+  "All Transactions": "payments.view",
+  Refunds: "payments.view",
+  "Outstanding Balance": "payments.view",
+  Guests: "guests.view",
+  "Night Audit": "night_audit.view",
+  Amenities: "master.view",
+  "Bed Types": "master.view",
+  "Meal Types": "master.view",
+  "Room View Types": "master.view",
+  Floor: "master.view",
+  "Capacity Patterns": "master.view",
+  "Experience Categories": "master.view",
+  "OTA Channels": "master.view",
+  "Payment Methods": "master.view",
+  "Cancellation Policy Types": "master.view",
+  "Daily Manager": "reports.view_revenue",
+  "AR Aging": "reports.view_revenue",
+  "Deposit Reconciliation": "reports.view_revenue",
+  "Reservation Report": "reports.view_reservations",
+  "Room Performance": "reports.view_revenue",
+  Revenue: "reports.view_revenue",
+  "Reservation Settings": "master.view",
+  Users: "master.view",
+  "Roles & Permissions": "master.view",
+  "Hotel Info": "web_settings.manage",
+  "Favorite Rooms": "web_settings.manage",
+  Gallery: "web_settings.manage",
+};
+
+function canSeeMenu(label: string, user: AuthUser | null): boolean {
+  if (!user || !(label in menuPermissions)) return false;
+  if (
+    (label === "Users" || label === "Roles & Permissions") &&
+    user.roleName !== "Owner"
+  )
+    return false;
+  const permission = menuPermissions[label];
+  return permission === null || user.permissions.includes(permission);
+}
 const reservationRoutes: Record<string, string> = {
   "All Transactions": "/payments/transactions",
   Refunds: "/payments/refunds",
@@ -157,6 +215,7 @@ export function hydrateSidebarOpenGroups() {
 }
 
 export function Sidebar({
+  user,
   pinned,
   onTogglePin,
   mobileOpen,
@@ -186,26 +245,37 @@ export function Sidebar({
     () => openGroupsCache ?? (currentGroup ? [currentGroup] : []),
   );
   const expanded = pinned || hovered || mobileOpen;
-  const visibleItems = (section === "hotelier" ? items : websiteItems).filter(
-    (item) => {
-      const term = menuSearch.trim().toLowerCase();
-      const label =
-        section === "website"
-          ? t("websiteItems." + item.label)
-          : t("items." + item.label);
-      return (
-        !term ||
-        label.toLowerCase().includes(term) ||
-        item.children?.some((child) => child.toLowerCase().includes(term))
-      );
-    },
-  );
+  const permittedItems = (
+    section === "hotelier" ? items : websiteItems
+  ).flatMap((item) => {
+    if (!item.children) return canSeeMenu(item.label, user) ? [item] : [];
+    const children = item.children.filter((child) => canSeeMenu(child, user));
+    return children.length ? [{ ...item, children }] : [];
+  });
+  const visibleItems = permittedItems.filter((item) => {
+    const term = menuSearch.trim().toLowerCase();
+    const label =
+      section === "website"
+        ? t("websiteItems." + item.label)
+        : t("items." + item.label);
+    return (
+      !term ||
+      label.toLowerCase().includes(term) ||
+      item.children?.some((child) =>
+        t("items." + child)
+          .toLowerCase()
+          .includes(term),
+      )
+    );
+  });
   const groupIsOpen = (item: Item) =>
     openGroups.includes(item.label) ||
     Boolean(
       menuSearch.trim() &&
       item.children?.some((child) =>
-        child.toLowerCase().includes(menuSearch.trim().toLowerCase()),
+        t("items." + child)
+          .toLowerCase()
+          .includes(menuSearch.trim().toLowerCase()),
       ),
     );
 
@@ -300,7 +370,7 @@ export function Sidebar({
               aria-label={t("website.searchLabel")}
             />
           </div>
-          {section === "hotelier" && (
+          {section === "hotelier" && canSeeMenu("New Reservation", user) && (
             <div className="sidebar-action">
               <Link
                 className="sidebar-new-button"
@@ -417,10 +487,10 @@ export function Sidebar({
                             .filter(
                               (child) =>
                                 !menuSearch.trim() ||
-                                item.label
+                                t("items." + item.label)
                                   .toLowerCase()
                                   .includes(menuSearch.trim().toLowerCase()) ||
-                                child
+                                t("items." + child)
                                   .toLowerCase()
                                   .includes(menuSearch.trim().toLowerCase()),
                             )

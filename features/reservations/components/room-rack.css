@@ -9,8 +9,8 @@
   --rr-text-primary: #202522;
   --rr-text-secondary: #6b726e;
   --rr-text-muted: #9ba19d;
-  --rr-primary: #173d31;
-  --rr-primary-container: #173d31;
+  --rr-primary: var(--primary);
+  --rr-primary-container: var(--primary);
   --rr-surface-low: #f0f5f0;
 
   --rr-success-bg: #ebf4ef;
@@ -181,7 +181,7 @@
   color: #fff;
 }
 .rr-pager button.rr-pager--today:hover {
-  background: #102e25;
+  background: var(--primary-hover);
 }
 
 .rr-range-label {
@@ -1038,7 +1038,7 @@
   border: 1px solid #cbd5ce;
   border-radius: 7px;
   background: #fff;
-  color: #173d31;
+  color: var(--primary);
 }
 @media (max-width: 600px) {
   .rr-assign-room-row {
@@ -1095,7 +1095,7 @@
   border-color: #789b83;
 }
 .rr-assign-room-option:has(input:checked) {
-  border-color: #173d31;
+  border-color: var(--primary);
   background: #edf7ef;
 }
 .api-reservation-modal-body .rr-assign-room-option input[type="radio"] {
@@ -1108,7 +1108,7 @@
   padding: 0;
   border: 0;
   appearance: auto;
-  accent-color: #173d31;
+  accent-color: var(--primary);
 }
 .rr-assign-room-option__details {
   display: grid;
@@ -1163,7 +1163,7 @@
   color: #fff;
 }
 .rr-btn--primary:hover {
-  background: #102e25;
+  background: var(--primary-hover);
 }
 
 .rr-detail__empty {
@@ -1329,8 +1329,8 @@
   color: #29332d;
 }
 .rr-cleaning-modal__confirm {
-  border: 1px solid #173d31;
-  background: #173d31;
+  border: 1px solid var(--primary);
+  background: var(--primary);
   color: #fff;
 }
 

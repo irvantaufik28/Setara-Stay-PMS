@@ -2118,11 +2118,11 @@ select[aria-invalid="true"]:focus {
   filter: brightness(0.88);
 }
 .api-reservation-actions > .api-reservation-action:focus-visible {
-  outline: 3px solid #173d31;
+  outline: 3px solid var(--primary);
   outline-offset: 3px;
 }
 .api-reservation-action--confirm {
-  --action-color: #173d31;
+  --action-color: var(--primary);
 }
 .api-reservation-action--payment {
   --action-color: #24547a;
