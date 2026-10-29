@@ -24,6 +24,7 @@ const items: Item[] = [
   { label: "Dashboard", icon: "dashboard" },
   { label: "AI Assistant", icon: "chat" },
   { label: "Reservation Calendar", icon: "rooms" },
+  { label: "Housekeeping", icon: "rooms" },
   {
     label: "Reservations",
     icon: "calendar",
@@ -92,6 +93,7 @@ const menuPermissions: Record<string, string | null> = {
   Dashboard: "dashboard.view",
   "AI Assistant": null,
   "Reservation Calendar": "reservations.view",
+  Housekeeping: "rooms.view_numbers",
   "New Reservation": "reservations.create",
   "Phone Reservation": "reservations.create",
   "OTA Reservation": "reservations.create",
@@ -183,6 +185,7 @@ const topLevelRoutes: Record<string, string> = {
   Dashboard: "/dashboard",
   "AI Assistant": "/ai",
   "Reservation Calendar": "/reservations/room-rack",
+  Housekeeping: "/housekeeping",
   "Prices & Stocks": "/prices-stocks",
   "Cancellation Policies": "/cancellation-policies",
   "Campaigns & Promotions": "/campaigns",

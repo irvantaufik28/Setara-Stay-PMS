@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { markRoomAvailable } from "../services/room-rack";
+import {
+  listRoomStatusHistory,
+  type RoomStatusEvent,
+} from "../../housekeeping/services/housekeeping";
 import { useTranslations } from "../../../lib/i18n";
 import en from "../locales/en.json";
 import id from "../locales/id.json";
@@ -23,6 +27,15 @@ export function RoomRackCleaningModal({
   const { t } = useTranslations({ en, id });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState<RoomStatusEvent[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void listRoomStatusHistory(room.id, controller.signal)
+      .then((result) => setHistory(result.items))
+      .catch(() => {});
+    return () => controller.abort();
+  }, [room.id]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -61,8 +74,12 @@ export function RoomRackCleaningModal({
       >
         <div className="rr-cleaning-modal__header">
           <div>
-            <span className="rr-cleaning-modal__eyebrow">{t("cleaningModal.eyebrow")}</span>
-            <h2 id="rr-cleaning-title">{t("cleaningModal.roomTitle", { number: room.number })}</h2>
+            <span className="rr-cleaning-modal__eyebrow">
+              {t("cleaningModal.eyebrow")}
+            </span>
+            <h2 id="rr-cleaning-title">
+              {t("cleaningModal.roomTitle", { number: room.number })}
+            </h2>
           </div>
           <button
             type="button"
@@ -85,9 +102,23 @@ export function RoomRackCleaningModal({
               {t("cleaningModal.available")}
             </span>
           </div>
-          <p>
-            {t("cleaningModal.description")}
-          </p>
+          <p>{t("cleaningModal.description")}</p>
+          {history.length > 0 && (
+            <div className="rr-cleaning-history">
+              <strong>{t("cleaningModal.history")}</strong>
+              <ul>
+                {history.slice(0, 5).map((event) => (
+                  <li key={event.id}>
+                    {event.actorName}: {event.statusBefore} →{" "}
+                    {event.statusAfter} ·{" "}
+                    {new Date(event.occurredAt).toLocaleString("id-ID", {
+                      timeZone: "Asia/Jakarta",
+                    })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {error && (
             <p className="rr-cleaning-modal__error" role="alert">
               {error}

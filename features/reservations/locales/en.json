@@ -945,6 +945,7 @@
     }
   },
   "cleaningModal": {
+    "history": "Status history",
     "eyebrow": "Room status",
     "roomTitle": "Room {number}",
     "close": "Close",

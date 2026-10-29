@@ -945,6 +945,7 @@
     }
   },
   "cleaningModal": {
+    "history": "Riwayat status",
     "eyebrow": "Status kamar",
     "roomTitle": "Kamar {number}",
     "close": "Tutup",

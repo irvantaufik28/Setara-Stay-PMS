@@ -90,7 +90,7 @@ export function getRoomRack(startDate: string, signal?: AbortSignal) {
 export function markRoomAvailable(roomId: string) {
   return apiRequest(`room-numbers/${roomId}/operational-status`, {
     method: "PATCH",
-    body: { operationalStatus: "available" },
+    body: { operationalStatus: "available", source: "room_rack" },
   });
 }
 

@@ -1,0 +1,180 @@
+.housekeeping-page {
+  max-width: 1420px;
+  margin: 0 auto;
+}
+.housekeeping-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.housekeeping-heading h1 {
+  margin: 0 0 5px;
+  font-size: 28px;
+}
+.housekeeping-heading p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+.housekeeping-heading strong {
+  color: #a65d13;
+  white-space: nowrap;
+}
+.housekeeping-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 18px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.housekeeping-filters input,
+.housekeeping-filters select {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+  color: var(--text-primary);
+}
+.housekeeping-filters input {
+  min-width: 240px;
+  flex: 1;
+}
+.housekeeping-table-wrap {
+  overflow-x: auto;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.housekeeping-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.housekeeping-table-wrap th,
+.housekeeping-table-wrap td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.housekeeping-table-wrap th {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.housekeeping-status {
+  padding: 5px 10px;
+  border-radius: 5px;
+  background: #fff2d5;
+  color: #85520f;
+}
+.housekeeping-table-wrap button,
+.housekeeping-dialog footer button,
+.housekeeping-pagination button {
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+.housekeeping-table-wrap button:hover {
+  border-color: var(--primary);
+}
+.housekeeping-empty,
+.housekeeping-error {
+  padding: 20px;
+}
+.housekeeping-error {
+  color: #a43f33;
+}
+.housekeeping-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 12px;
+  margin-top: 18px;
+}
+.housekeeping-recent {
+  margin-top: 38px;
+}
+.housekeeping-recent h2 {
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+.housekeeping-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #102a20a8;
+}
+.housekeeping-dialog {
+  width: min(100%, 540px);
+  max-height: 85vh;
+  overflow: auto;
+  padding: 24px;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 24px 70px #102a2033;
+}
+.housekeeping-dialog header,
+.housekeeping-dialog footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.housekeeping-dialog header h2 {
+  margin: 4px 0 0;
+}
+.housekeeping-dialog header > button {
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  cursor: pointer;
+}
+.housekeeping-dialog h3 {
+  margin-top: 28px;
+}
+.housekeeping-dialog ul {
+  max-height: 220px;
+  overflow: auto;
+  padding-left: 20px;
+}
+.housekeeping-dialog li {
+  margin-bottom: 10px;
+}
+.housekeeping-dialog li span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.housekeeping-dialog footer {
+  justify-content: end;
+  margin-top: 25px;
+}
+.housekeeping-dialog footer button:last-child {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+.housekeeping-dialog button:disabled,
+.housekeeping-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 640px) {
+  .housekeeping-heading {
+    display: block;
+  }
+  .housekeeping-heading strong {
+    display: block;
+    margin-top: 15px;
+  }
+  .housekeeping-filters > * {
+    width: 100%;
+  }
+}
